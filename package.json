@@ -1,0 +1,62 @@
+{
+  "name": "epgp-discord",
+  "version": "1.0.0",
+  "main": "./app.js",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "axios": "^0.19.2",
+    "connect-nedb-session": "^0.0.3",
+    "discord.js": "^11.5.1",
+    "express": "^4.17.1",
+    "express-session": "^1.17.0",
+    "hbs": "^4.1.0",
+    "lodash": "^4.17.15",
+    "morgan": "^1.9.1",
+    "nedb": "^1.8.0",
+    "uuid": "^3.4.0",
+    "winston": "^3.2.1",
+    "winston-daily-rotate-file": "^4.4.2"
+  },
+  "scripts": {
+    "start": "NODE_ENV=production node ./app.js",
+    "start:dev": "yarn pretty && NODE_ENV=development nodemon ./app.js",
+    "pretty": "eslint --fix *.js"
+  },
+  "devDependencies": {
+    "eslint": "^5.11.0",
+    "eslint-plugin-prettier": "^3.0.0",
+    "nodemon": "^1.18.9",
+    "prettier": "^1.15.3"
+  },
+  "eslintConfig": {
+    "env": {
+      "node": true,
+      "es6": true
+    },
+    "plugins": [
+      "prettier"
+    ],
+    "rules": {
+      "prettier/prettier": "warn"
+    },
+    "parserOptions": {
+      "ecmaVersion": 2017,
+      "sourceType": "module"
+    }
+  },
+  "prettier": {
+    "trailingComma": "none",
+    "tabWidth": 2,
+    "semi": true,
+    "singleQuote": true,
+    "printWidth": 160,
+    "endOfLine": "lf"
+  },
+  "nodemonConfig": {
+    "ignore": [
+      "*.json",
+      "*.md",
+      ".idea/*"
+    ]
+  }
+}

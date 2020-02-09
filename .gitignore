@@ -1,0 +1,6 @@
+db.json
+props.json
+node_modules/
+.idea
+yarn-error.log
+*.code-workspace
