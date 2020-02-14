@@ -1,1 +1,28 @@
-EPGP
+<table>
+  <thead>
+    <h2>EP/GP Guilds</h2>
+  </thead>
+  <tr><th colspan="2">Guild</th></tr>
+  {{#unless guildsWithEpgp}}
+    <tr><td>None of your guilds have EP/GP</td></tr>
+  {{/unless}}
+  {{#each guildsWithEpgp}}
+    <tr>
+      <td>{{#if icon}}<img src="https://cdn.discordapp.com/icons/{{id}}/{{icon}}.png" width="25">{{/if}}</td>
+      <td>{{name}}</td>
+    </tr>
+  {{/each}}
+</table>
+<table>
+  <thead>
+    <h3>No EP/GP Rankings</h3>
+  </thead>
+  <tr><th colspan="2">Guild</th><th></th></tr>
+  {{#each nonGuildsWithAdmin}}
+    <tr>
+      <td>{{#if icon}}<img src="https://cdn.discordapp.com/icons/{{id}}/{{icon}}.png" width="25">{{/if}}</td>
+      <td>{{name}}</td>
+      <td>{{#if admin}}<a href="#">Add EP/GP</a>{{/if}}</td>
+    </tr>
+  {{/each}}
+</table>

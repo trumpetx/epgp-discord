@@ -2,7 +2,7 @@
   <span><a href="/">Home</a></span>
   {{#if session.expires_at}}
     <span><a href="/epgp">EPGP</a></span>
-    <span><a title="Logged in until {{session.expires_at}}" href="/logout">Logout</a></span>
+    <span>{{session.discord_user.username}}</span> <span><a title="Logged in until {{session.expires_at}}" href="/logout">Logout</a></span>
   {{else}}
     <span><a href="{{discordUrl}}">Login with Discord</a></span>
   {{/if}}

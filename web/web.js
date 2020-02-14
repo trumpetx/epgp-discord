@@ -8,12 +8,7 @@ const NedbStore = require('connect-nedb-session')(session);
 const uuidv4 = require('uuid/v4');
 const { props } = require('../props');
 const app = (module.exports = express());
-const request = require('request');
-const _ = require('lodash');
-
-const REDIRECT_URI = `http://epgp.net:${props.port}/oauth/redirect`;
-const DISCORD_BASE = 'https://discordapp.com/api';
-const SCOPE = 'identify email guilds';
+const { discordUrl } = require('../discord');
 
 app.engine(
   'hbs',
@@ -44,85 +39,25 @@ app.use(
 );
 app.use((req, res, next) => {
   // console.debug(req.session);
-  res.locals.session = req.session.expires_at ? req.session : {};
+  res.locals.session = req.session && req.session.expires_at ? req.session : {};
   next();
 });
 
 app.get('/', (req, res) => {
   req.session.state = req.session.state || uuidv4();
   res.render('login', {
-    discordUrl: `${DISCORD_BASE}/oauth2/authorize?state=${encodeURIComponent(req.session.state)}&client_id=${props.clientId}&redirect_uri=${encodeURIComponent(
-      REDIRECT_URI
-    )}&response_type=code&scope=${encodeURIComponent(SCOPE)}`
+    discordUrl: discordUrl(req.session.state)
   });
 });
 
-app.get('/logout', (req, res) => {
-  req.session.destroy(err => {
-    if (err) throw new Error(err);
-    res.redirect('/');
-  });
-});
+app.get('/logout', require('./logout'));
 
-app.get('/epgp', (req, res) => {
-  res.render('epgp');
-});
+app.get('/epgp', require('./epgp'));
 
-app.get('/oauth/redirect', (req, res) => {
-  if (req.query.state !== req.session.state) {
-    throw new Error('Invalid state');
-  }
-  const options = {
-    method: 'POST',
-    url: `${DISCORD_BASE}/oauth2/token`,
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      Accept: 'application/json',
-      Authorization: `Basic ${Buffer.from(`${props.clientId}:${props.clientSecret}`).toString('base64')}`
-    },
-    form: {
-      grant_type: 'authorization_code',
-      code: req.query.code,
-      redirect_uri: REDIRECT_URI,
-      scope: SCOPE
-    }
-  };
+app.get('/oauth/redirect', require('./oauth'));
 
-  request(options, (error, _response, body) => {
-    if (error) {
-      throw new Error(error);
-    } else {
-      body = JSON.parse(body);
-      req.session.refresh_token = body.refresh_token;
-      req.session.access_token = body.access_token;
-      req.session.expires_at = new Date(_.toInteger(body.expires_in) + new Date().getTime());
-      res.redirect('/epgp');
-    }
-  });
-});
-
-//
-//  DO THIS BLOCK LAST
-//
-
-app.use((req, res, _next) => {
-  res.status(404);
-  res.format({
-    html: () => {
-      res.render('404', { url: req.url });
-    },
-    json: () => {
-      res.json({ error: 'Not found' });
-    },
-    default: () => {
-      res.type('txt').send('Not found');
-    }
-  });
-});
-app.use((err, _req, res, _next) => {
-  res.status(err.status || 500);
-  console.error(err.stack);
-  res.render('500');
-});
+//  DO THIS LAST
+app.use(require('./400'));
+app.use(require('./500'));
 
 app.listen(props.port, () => logger.info(`Server running at http://epgp.net:${props.port}/`));

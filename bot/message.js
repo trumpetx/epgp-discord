@@ -3,7 +3,6 @@ const { chunk, deleteMsg, isAdmin } = require('./discord-util');
 const { startsWithIgnoreCase } = require('../util');
 const { props } = require('../props');
 
-
 module.exports = async function message(message) {
   if (message.author.bot) return;
   if (!startsWithIgnoreCase(message.content, props.prefix)) return;
@@ -41,4 +40,3 @@ module.exports = async function message(message) {
     deleteMsg(message);
   }
 };
-
