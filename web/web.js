@@ -1,4 +1,5 @@
 const express = require('express');
+const helmet = require('helmet');
 const hbs = require('express-handlebars');
 const { logger } = require('../logger');
 const morgan = require('morgan');
@@ -10,6 +11,7 @@ const { props } = require('../props');
 const app = (module.exports = express());
 const { discordUrl } = require('../discord');
 
+app.use(helmet());
 app.engine(
   'hbs',
   hbs({
@@ -37,23 +39,32 @@ app.use(
     store: new NedbStore({ filename: `${require('os').homedir()}/websessions.db` })
   })
 );
+app.use('/epgp*', (req, res, next) => {
+  if (!req.session || !req.session.expires_at) {
+    res.redirect(discordUrl(req.session.state));
+  } else {
+    next();
+  }
+});
 app.use((req, res, next) => {
-  // console.debug(req.session);
-  res.locals.session = req.session && req.session.expires_at ? req.session : {};
+  req.session.state = req.session.state || uuidv4();
+  if (req.session && req.session.expires_at) {
+    res.locals.session = req.session;
+  } else {
+    res.locals.session = {};
+    res.locals.discordUrl = discordUrl(req.session.state);
+  }
   next();
 });
 
-app.get('/', (req, res) => {
-  req.session.state = req.session.state || uuidv4();
-  res.render('login', {
-    discordUrl: discordUrl(req.session.state)
-  });
-});
+// Static routes
+app.get('/', (_req, res) => res.render('index'));
+app.get('/about', (_req, res) => res.render('about'));
+app.get('/gearpoints', (_req, res) => res.render('gearpoints'));
+app.get('/effortpoints', (_req, res) => res.render('effortpoints'));
 
 app.get('/logout', require('./logout'));
-
 app.get('/epgp', require('./epgp'));
-
 app.get('/oauth/redirect', require('./oauth'));
 
 //  DO THIS LAST

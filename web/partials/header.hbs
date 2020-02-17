@@ -1,9 +1,33 @@
 <div class="header">
-  <span><a href="/">Home</a></span>
-  {{#if session.expires_at}}
-    <span><a href="/epgp">EPGP</a></span>
-    <span>{{session.discord_user.username}}</span> <span><a title="Logged in until {{session.expires_at}}" href="/logout">Logout</a></span>
-  {{else}}
-    <span><a href="{{discordUrl}}">Login with Discord</a></span>
-  {{/if}}
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <a class="navbar-brand" href="/">epgp.net</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarTogglerDemo02"
+      aria-controls="navbarTogglerDemo02" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarTogglerDemo02">
+      <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
+        <li class="nav-item">
+          <a class="nav-link" href="/about">About EP/GP</a>
+        </li>
+        {{#if session.expires_at}}
+        <li class="nav-item">
+          <a class="nav-link" href="/epgp">EP/GP Standings</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" title="Logged in until {{session.expires_at}}" href="/logout">Logout</a>
+        </li>
+        {{else}}
+        <li class="nav-item">
+          <a class="nav-link" href="{{discordUrl}}">Login</a>
+        </li>
+        {{/if}}
+      </ul>
+      <form class="form-inline my-2 my-lg-0">
+        <input class="form-control mr-sm-2" type="search" placeholder="Search">
+        <button class="btn my-2 my-sm-0" type="submit">Search</button>
+      </form>
+    </div>
+  </nav>
 </div>

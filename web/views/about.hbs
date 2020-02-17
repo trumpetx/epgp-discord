@@ -1,0 +1,68 @@
+<div id="help-content">
+  
+<h1><a name="The_System"></a>The System</h1>
+
+<h2><a name="Introduction"></a>Introduction</h2>
+
+<p>EPGP stands for <em>Effort Points/Gear
+Points</em>. <a href="/effortpoints">Effort Points</a> (EP)
+quantify the effort each member put towards the, hopefully common,
+guild goals. <a href="/gearpoints">Gear Points</a> (GP) quantify
+what loot each member got back in return. Loot priority (PR) is
+computed as the quotient of the two:</p>
+
+<pre>PR = EP/GP</pre>
+
+<p>The person with the higher PR gets the first say on loot. As a result,
+the more effort you put the more gear you receive. As a matter of
+fact, the gear you receive is <strong>proportional</strong> to the
+effort you put. EPGP is based on this simple principle, but there are
+some complexities that need to be dealt with which will be covered
+below.</p>
+
+<h2><a name="Decay"></a>Decay</h2>
+
+<p>In order to award recent effort more than past effort, which in
+effect avoids PR hoarding for veterans and enables new coming and
+dedicated members of a guild to be awarded properly, EPGP supports a
+decay mechanism. Decay simply removes a chunk of EP and GP from the
+totals, effectively leaving PR unchanged. For example with a decay of
+10% applied each week, for each 7 days that pass your effort's
+rewards get diminished by 10%. The effort you put 10 weeks ago will
+only be worth 34.8% of what it did when you received it (
+(1-0.1)<sup>10</sup>).</p>
+
+<h2><a name="Priming_the_system"></a>Priming the system</h2>
+
+<p>A loot system should behave reasonably not only in its
+steady state but also when new members join a guild and the
+guild's efforts. For this reason some extra parameters need to be
+setup.</p>
+
+<h3><a name="Base_GP"></a>Base GP</h3>
+
+<p>Base GP adds a certain GP to each member of a guild. This means the
+final GP of each member is: GP = BaseGP + RealGP. All PR computations
+happen on GP not BaseGP or RealGP. Decay also applies to GP as a whole
+but it only diminishes RealGP. As such GP can never be lower than
+BaseGP. For example, say we have BaseGP = 100 and RealGP =
+10. Applying a 10% decay will result in RealGP = 0 for a total of 100
+GP.</p>
+
+<p>Base GP prevents new recruits or long time inactive members from
+trumping your dedicated members just because their GP is 0 and thus
+their PR infinite.</p>
+
+<h3><a name="Min_EP"></a>Min EP</h3>
+
+<p>Min EP puts a limit, which members should exceed in order to have
+any loot priority. This is more or less an attendance check and a road
+block for new members to reach a point after which they can need on
+loot. Anyone below MinEP has in effect lower PR then everyone above
+MinEP even if their effective PR is higher. For example MinEP = 10000
+and member A has 20000 EP and 4000 GP for 5 PR and member B has 1000
+EP and 100 GP for 10 PR. In this case member A has higher priority for
+loot since he/she is above the MinEP threshold even though his/her PR
+is lower than member B.</p>
+
+</div>

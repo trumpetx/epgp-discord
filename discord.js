@@ -1,5 +1,6 @@
 const request = require('request');
 const { props } = require('./props');
+const { logger } = require('./logger');
 
 const REDIRECT_URI = `http://epgp.net:${props.port}/oauth/redirect`;
 const DISCORD_BASE = 'https://discordapp.com/api';
@@ -35,7 +36,8 @@ const oauth_options = code => {
   };
 };
 
-const discord_base = (callback, options) =>
+const discord_base = (callback, options) => {
+  logger.info('Discord request: ' + options.url);
   request(options, (error, _response, body) => {
     if (error) {
       throw new Error(error);
@@ -43,6 +45,7 @@ const discord_base = (callback, options) =>
       callback(JSON.parse(body));
     }
   });
+};
 
 const discord = (token, url, callback) => discord_base(callback, discord_options(token, url));
 
