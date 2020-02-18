@@ -1,4 +1,5 @@
 const express = require('express');
+const methodOverride = require('method-override');
 const helmet = require('helmet');
 const hbs = require('express-handlebars');
 const { logger } = require('../logger');
@@ -10,8 +11,13 @@ const uuidv4 = require('uuid/v4');
 const { props } = require('../props');
 const app = (module.exports = express());
 const { discordUrl } = require('../discord');
+const logout = require('./logout');
+const epgp = require('./epgp');
+const { addguild, viewguild, deleteguild, uploadbackup } = require('./epgp_guild');
+const oauth = require('./oauth');
 
 app.use(helmet());
+app.use(methodOverride('_method'));
 app.engine(
   'hbs',
   hbs({
@@ -63,9 +69,13 @@ app.get('/about', (_req, res) => res.render('about'));
 app.get('/gearpoints', (_req, res) => res.render('gearpoints'));
 app.get('/effortpoints', (_req, res) => res.render('effortpoints'));
 
-app.get('/logout', require('./logout'));
-app.get('/epgp', require('./epgp'));
-app.get('/oauth/redirect', require('./oauth'));
+app.get('/logout', logout);
+app.get('/epgp', epgp);
+app.post('/epgp/:guildid', addguild);
+app.get('/epgp/:guildid', viewguild);
+app.delete('/epgp/:guildid', deleteguild);
+app.post('/epgp/:guildid/upload', uploadbackup);
+app.get('/oauth/redirect', oauth);
 
 //  DO THIS LAST
 app.use(require('./400'));

@@ -1,0 +1,32 @@
+{{#if guild.admin}}
+  <div style="float:right;">
+    <form method="POST" action="/epgp/{{guild.id}}?_method=DELETE"><button type="submit" class="btn btn-danger">Delete Guild</button></form><br/>
+    <button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#uploadModal">Upload Backup</button>
+  </div>
+{{/if}}
+<h1>{{guild.name}}</h1>
+
+<div class="modal" tabindex="-1" role="dialog" id="uploadModal">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <form method="POST" action="/epgp/{{guild.id}}/upload">
+        <div class="modal-header">
+          <h5 class="modal-title">Upload your EP/GP Backup Data</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="uploadBackup">Paste your JSON backup data from the addon here</label>
+            <textarea class="form-control" id="uploadBackup" rows="10" cols="5"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary">Upload Backup</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

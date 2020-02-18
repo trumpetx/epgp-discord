@@ -7,10 +7,9 @@ const CACHE_TIME = 10 * 60 * 1000;
 
 function renderGuilds(req, res) {
   const myGuildIds = req.session.guilds.map(g => g.id);
-  db.find({ id: { $in: myGuildIds } }, (err, docs) => {
+  db.find({ id: { $in: myGuildIds } }, (err, guildsWithEpgp) => {
     if (err) throw new Error(err);
-    const guildsWithEpgp = docs.map(g => g.id);
-    const nonGuilds = req.session.guilds.filter(el => !guildsWithEpgp.includes(el.id));
+    const nonGuilds = req.session.guilds.filter(el => !guildsWithEpgp.some(g => g.id === el.id));
     const nonGuildsWithAdmin = nonGuilds.filter(el => el.admin);
     const nonGuildsWithoutAdminCount = nonGuilds.length - nonGuildsWithAdmin.length;
     res.render('epgp', { nonGuildsWithAdmin, guildsWithEpgp, nonGuildsWithoutAdminCount });
