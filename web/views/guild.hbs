@@ -6,6 +6,29 @@
 {{/if}}
 <h1>{{guild.name}}</h1>
 
+{{#if current}}
+<table class="table table-bordered table-striped table-dark" style="width: 300px;">
+  <tr><td>Guild:</td><td>{{current.guild}}</td></tr>
+  <!--tr><td>Region:</td><td>{{current.region}}</td></tr-->
+  <tr><td>Min EP:</td><td>{{current.min_ep}}</td></tr>
+  <tr><td>Base GP:</td><td>{{current.base_gp}}</td></tr>
+  <tr><td>Extras:</td><td>{{current.extras_p}}</td></tr>
+</table>
+<table id="currentRoster" class="table table-bordered table-striped table-dark">
+  <thead>
+    <tr><td>Member</td><td>EP</td><td>GP</td><td>PR</td></tr>
+  </thead>
+  {{#each current.roster}}
+    <tr><td>{{replaceAfterIncludes this.[0] '-'}}</td><td>{{this.[1]}}</td><td>{{this.[2]}}</td><td>{{div this.[1] this.[2]}}</td></tr>
+  {{/each}}
+</table>
+<h4>All Backups:</h4>
+<ul>
+  {{#each guild.backups}}<li><a href="/epgp/{{../guild.id}}?index={{@index}}">{{timestampDate}}</a></li>{{/each}}
+</ul>
+{{/if}}
+
+
 <div class="modal" tabindex="-1" role="dialog" id="uploadModal">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
@@ -19,7 +42,7 @@
         <div class="modal-body">
           <div class="form-group">
             <label for="uploadBackup">Paste your JSON backup data from the addon here</label>
-            <textarea class="form-control" id="uploadBackup" rows="10" cols="5"></textarea>
+            <textarea class="form-control" name="uploadBackup" id="uploadBackup" rows="10" cols="5"></textarea>
           </div>
         </div>
         <div class="modal-footer">

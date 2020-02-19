@@ -15,16 +15,23 @@ const logout = require('./logout');
 const epgp = require('./epgp');
 const { addguild, viewguild, deleteguild, uploadbackup } = require('./epgp_guild');
 const oauth = require('./oauth');
+const _ = require('lodash');
 
 app.use(helmet());
 app.use(methodOverride('_method'));
+app.use(express.json());
+app.use(express.urlencoded());
 app.engine(
   'hbs',
   hbs({
     extname: 'hbs',
     defaultLayout: 'main',
     layoutsDir: path.join(__dirname, 'layouts'),
-    partialsDir: path.join(__dirname, 'partials')
+    partialsDir: path.join(__dirname, 'partials'),
+    helpers: {
+      div: (a, b) => (b === 0 ? NaN : _.round(a / b, 2)),
+      replaceAfterIncludes: (a, b) => a.substring(0, a.lastIndexOf(b))
+    }
   })
 );
 app.set('view engine', 'hbs');
