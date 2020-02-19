@@ -1,8 +1,11 @@
 const request = require('request');
 const { props } = require('./props');
 const { logger } = require('./logger');
-
-const REDIRECT_URI = `http://epgp.net:${props.port}/oauth/redirect`;
+let redirectPort = ':' +  (props.extPort || props.port || 8080);
+if(redirectPort === ':80'){
+  port = '';
+}
+const REDIRECT_URI = `http://${props.hostname}${port}/oauth/redirect`;
 const DISCORD_BASE = 'https://discordapp.com/api';
 const SCOPE = 'identify email guilds';
 
