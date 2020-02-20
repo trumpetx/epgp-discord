@@ -1,11 +1,11 @@
 const request = require('request');
 const { props } = require('./props');
 const { logger } = require('./logger');
-let redirectPort = ':' +  (props.extPort || props.port || 8080);
-if(redirectPort === ':80'){
-  port = '';
+let redirectPort = ':' + (props.extPort || props.port || 8080);
+if (redirectPort === ':80') {
+  redirectPort = '';
 }
-const REDIRECT_URI = `http://${props.hostname}${port}/oauth/redirect`;
+const REDIRECT_URI = `${props.hostname}${redirectPort}/oauth/redirect`;
 const DISCORD_BASE = 'https://discordapp.com/api';
 const SCOPE = 'identify email guilds';
 

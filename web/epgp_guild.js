@@ -17,10 +17,10 @@ module.exports.addguild = (req, res) => {
 
 module.exports.viewguild = (req, res) => {
   const guildid = req.params.guildid;
-  const index = req.query.index || 0;
   if (!isUser(req)) throw GENERIC_ERROR;
   db.findOne({ id: guildid }, (err, guild) => {
     if (err) throw new Error(err);
+    const index = req.query.index || (guild.backups || []).length - 1;
     res.render('guild', { guild, index, current: guild.backups && guild.backups[index] });
   });
 };

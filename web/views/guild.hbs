@@ -24,7 +24,7 @@
 </table>
 <h4>All Backups:</h4>
 <ul>
-  {{#each guild.backups}}<li><a href="/epgp/{{../guild.id}}?index={{@index}}">{{timestampDate}}</a></li>{{/each}}
+  {{#reverse guild.backups}}<li><a href="/epgp/{{../guild.id}}?index={{index}}">{{timestampDate}}</a></li>{{/reverse}}
 </ul>
 {{/if}}
 

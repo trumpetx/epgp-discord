@@ -30,7 +30,25 @@ app.engine(
     partialsDir: path.join(__dirname, 'partials'),
     helpers: {
       div: (a, b) => (b === 0 ? NaN : _.round(a / b, 2)),
-      replaceAfterIncludes: (a, b) => a.substring(0, a.lastIndexOf(b))
+      replaceAfterIncludes: (a, b) => a.substring(0, a.lastIndexOf(b)),
+      reverse: function(context) {
+        var options = arguments[arguments.length - 1];
+        var ret = '';
+
+        if (context && context.length > 0) {
+          for (var i = context.length - 1; i >= 0; i--) {
+            const x = context[i];
+            if (typeof x === 'object') {
+              x.index = i;
+            }
+            ret += options.fn(x);
+          }
+        } else {
+          ret = options.inverse(this);
+        }
+
+        return ret;
+      }
     }
   })
 );
@@ -88,4 +106,4 @@ app.get('/oauth/redirect', oauth);
 app.use(require('./400'));
 app.use(require('./500'));
 
-app.listen(props.port, () => logger.info(`Server running at http://epgp.net:${props.port}/`));
+app.listen(props.port, () => logger.info(`Server running at ${props.hostname}:${props.port}/`));
