@@ -1,4 +1,6 @@
-const db = require('../db');
+const { db } = require('../db');
+const { botUrl } = require('../discord');
+const _ = require('lodash');
 const GENERIC_ERROR = new Error('Invalid Guild ID');
 const getGuild = req => req.session.guilds.find(g => g.id === req.params.guildid);
 const isUserOfGuild = (guild, admin) => guild && (admin !== true || guild.admin === admin);
@@ -22,6 +24,18 @@ module.exports.viewguild = (req, res) => {
     if (err) throw new Error(err);
     const index = req.query.index || (guild.backups || []).length - 1;
     res.render('guild', { guild, index, current: guild.backups && guild.backups[index] });
+  });
+};
+
+module.exports.viewbot = (req, res) => {
+  const guildid = req.params.guildid;
+  if (!isUser(req)) throw GENERIC_ERROR;
+  const model = isAdmin(req) ? { botUrl } : {};
+  db.findOne({ id: guildid }, (err, guild) => {
+    if (err) throw new Error(err);
+    model.guild = guild;
+
+    res.render('bot', model);
   });
 };
 

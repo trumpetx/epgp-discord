@@ -7,3 +7,15 @@ table.dataTable tbody tr {
 .dataTables_wrapper .dataTables_length, .dataTables_wrapper .dataTables_filter, .dataTables_wrapper .dataTables_info, .dataTables_wrapper .dataTables_processing, .dataTables_wrapper .dataTables_paginate {
   color: unset;
 }
+.narrow {
+  white-space: nowrap;
+  width: 1px;
+}
+
+.red {
+  color: rgb(145, 0, 0);
+}
+
+.green {
+  color: rgb(0, 180, 0);
+}

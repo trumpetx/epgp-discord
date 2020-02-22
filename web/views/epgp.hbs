@@ -1,29 +1,29 @@
 <table class="table table-bordered{{#if guildsWithEpgp}} table-striped{{/if}} table-dark">
   <thead>
-    <tr><th colspan="3"><h3>EP/GP Guilds</h3></th></tr>
+    <tr><th colspan="3"><h4>EP/GP Guilds</h4></th></tr>
   </thead>
   {{#unless guildsWithEpgp}}
     <tr><td colspan="3"><i>None of your current guilds have EP/GP</i></td></tr>
   {{/unless}}
   {{#each guildsWithEpgp}}
     <tr>
-      <td style="width: 50px;">{{#if icon}}<img src="https://cdn.discordapp.com/icons/{{id}}/{{icon}}.png" width="25">{{/if}}</td>
+      <td class="narrow">{{#if icon}}<img src="https://cdn.discordapp.com/icons/{{id}}/{{icon}}.png" width="50">{{/if}}</td>
       <td>{{name}}</td>
-      <td style="width: 300px;"><form method="GET" action="/epgp/{{id}}"><button type="submit" class="btn btn-primary">View EP/GP</button></form></td>
+      <td class="narrow"><a class="btn btn-primary" href="/epgp/{{id}}" role="button">View EP/GP</a></td>
     </tr>
   {{/each}}
 </table>
 <br/><br/>
 <table class="table table-bordered{{#if nonGuildsWithAdmin}} table-striped{{/if}} table-dark">
   <thead>
-    <th colspan="3"><h3>Add EP/GP to a managed Guild</h3></th>
+    <th colspan="3"><h4>Add EP/GP to a managed Guild</h4></th>
   </thead>
   <tbody>
   {{#each nonGuildsWithAdmin}}
     <tr>
-      <td style="width: 50px;">{{#if icon}}<img src="https://cdn.discordapp.com/icons/{{id}}/{{icon}}.png" width="50">{{/if}}</td>
+      <td class="narrow">{{#if icon}}<img src="https://cdn.discordapp.com/icons/{{id}}/{{icon}}.png" width="50">{{/if}}</td>
       <td>{{name}}</td>
-      <td style="width: 300px;"><form method="POST" action="/epgp/{{id}}"><button type="submit" class="btn btn-primary">Add EP/GP</button></form></td>
+      <td class="narrow"><form method="POST" action="/epgp/{{id}}"><button type="submit" class="btn btn-primary">Add EP/GP</button></form></td>
     </tr>
   {{/each}}
   </tbody>

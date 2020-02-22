@@ -1,8 +1,9 @@
 const { logger } = require('./logger');
 const { props } = require('./props');
+const { botServer } = require('./bot/botserver');
 
 if (props.clientId && props.token) {
-  require('./bot/botserver')(props.clientId, props.token, props.botPermissions);
+  botServer(props.token);
 } else {
   logger.error(`No clientId and token set, unable to start bot server: ${propsPath}`);
 }

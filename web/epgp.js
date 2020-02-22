@@ -1,8 +1,6 @@
-const { guilds } = require('../discord');
-const db = require('../db');
+const { guilds, ADMIN_PERMISSION, MANAGE_GUILD } = require('../discord');
+const { db } = require('../db');
 const _ = require('lodash');
-const ADMIN_PERMISSION = 8;
-const MANAGE_GUILD = 20;
 const CACHE_TIME = 10 * 60 * 1000;
 
 function renderGuilds(req, res) {

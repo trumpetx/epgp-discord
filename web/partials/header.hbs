@@ -9,25 +9,29 @@
     <div class="collapse navbar-collapse" id="navbarTogglerDemo02">
       <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
         <li class="nav-item">
-          <a class="nav-link" href="/about">About EP/GP</a>
+          <a class="nav-link" href="/about"><i class="fa fa-info-circle" aria-hidden="true"></i>&nbsp;&nbsp;About EP/GP</a>
         </li>
         {{#if session.expires_at}}
         <li class="nav-item">
-          <a class="nav-link" href="/epgp">EP/GP Standings</a>
+          <a class="nav-link" href="/epgp"><i class="fa fa-list" aria-hidden="true"></i>&nbsp;&nbsp;EP/GP Standings</a>
         </li>
+        {{/if}}
         <li class="nav-item">
-          <a class="nav-link" title="Logged in until {{session.expires_at}}" href="/logout">Logout</a>
+          <a class="nav-link" target="_new" href="https://www.curseforge.com/wow/addons/epgp-classic"><i class="fa fa-twitch" aria-hidden="true"></i>&nbsp;&nbsp;EPGP Classic Addon</a>
+        </li>
+        {{#if session.expires_at}}
+        <li class="nav-item">
+          <a class="nav-link" title="Logged in until {{session.expires_at}}" href="/logout"><i class="fa fa-sign-out" aria-hidden="true"></i>&nbsp;&nbsp;Logout</a>
         </li>
         {{else}}
         <li class="nav-item">
-          <a class="nav-link" href="{{discordUrl}}">Login</a>
+          <a class="nav-link" href="{{discordUrl}}"><i class="fa fa-sign-in" aria-hidden="true"></i>&nbsp;&nbsp;Login</a>
         </li>
         {{/if}}
       </ul>
-      <form class="form-inline my-2 my-lg-0">
-        <input class="form-control mr-sm-2" type="search" placeholder="Coming Soon">
-        <button class="btn my-2 my-sm-0" type="submit">Search</button>
-      </form>
+      <div data-toggle="tooltip" data-placement="bottom" title="{{#if serverStatus.online}}Bot has been online for {{serverStatus.uptime}}{{else}}Bot is offline{{/if}}">
+        Discord Bot: <i class="fa {{#if serverStatus.online}}fa-check-circle-o green{{else}}fa-circle red{{/if}}" aria-hidden="true"></i>
+      </div>
     </div>
   </nav>
 </div>

@@ -13,9 +13,10 @@ const app = (module.exports = express());
 const { discordUrl } = require('../discord');
 const logout = require('./logout');
 const epgp = require('./epgp');
-const { addguild, viewguild, deleteguild, uploadbackup } = require('./epgp_guild');
+const { addguild, viewguild, deleteguild, uploadbackup, viewbot } = require('./epgp_guild');
 const oauth = require('./oauth');
 const _ = require('lodash');
+const { serverStatus } = require('../bot/botserver');
 
 app.use(helmet());
 app.use(methodOverride('_method'));
@@ -70,13 +71,14 @@ app.use(
     store: new NedbStore({ filename: `${require('os').homedir()}/websessions.db` })
   })
 );
-app.use('/epgp*', (req, res, next) => {
+const loginFilter = (req, res, next) => {
   if (!req.session || !req.session.expires_at) {
     res.redirect(discordUrl(req.session.state));
   } else {
     next();
   }
-});
+};
+['/epgp*', '/bot*'].forEach(path => app.use(path, loginFilter));
 app.use((req, res, next) => {
   req.session.state = req.session.state || uuidv4();
   if (req.session && req.session.expires_at) {
@@ -85,6 +87,7 @@ app.use((req, res, next) => {
     res.locals.session = {};
     res.locals.discordUrl = discordUrl(req.session.state);
   }
+  res.locals.serverStatus = serverStatus();
   next();
 });
 
@@ -96,6 +99,7 @@ app.get('/effortpoints', (_req, res) => res.render('effortpoints'));
 
 app.get('/logout', logout);
 app.get('/epgp', epgp);
+app.get('/bot/:guildid', viewbot);
 app.post('/epgp/:guildid', addguild);
 app.get('/epgp/:guildid', viewguild);
 app.delete('/epgp/:guildid', deleteguild);
@@ -106,4 +110,4 @@ app.get('/oauth/redirect', oauth);
 app.use(require('./400'));
 app.use(require('./500'));
 
-app.listen(props.port, () => logger.info(`Server running at ${props.hostname}:${props.port}/`));
+app.listen(props.port, () => logger.info(`Server running at ${props.hostname}${props.extPortString}/`));
