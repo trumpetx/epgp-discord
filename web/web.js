@@ -13,10 +13,11 @@ const app = (module.exports = express());
 const { discordUrl } = require('../discord');
 const logout = require('./logout');
 const epgp = require('./epgp');
-const { addguild, viewguild, deleteguild, uploadbackup, viewbot } = require('./epgp_guild');
+const { addguild, viewguild, deleteguild, uploadbackup, viewbot, editbot } = require('./epgp_guild');
 const oauth = require('./oauth');
 const _ = require('lodash');
 const { serverStatus } = require('../bot/botserver');
+const { db, bots } = require('../db');
 
 app.use(helmet());
 app.use(methodOverride('_method'));
@@ -88,18 +89,25 @@ app.use((req, res, next) => {
     res.locals.discordUrl = discordUrl(req.session.state);
   }
   res.locals.serverStatus = serverStatus();
-  next();
+  db.count({}, (err, guildCount) => {
+    if (err) logger.error(err);
+    res.locals.guildCount = guildCount;
+    bots.count({}, (err, botCount) => {
+      if (err) logger.error(err);
+      res.locals.botCount = botCount;
+      next();
+    });
+  });
 });
 
 // Static routes
 app.get('/', (_req, res) => res.render('index'));
 app.get('/about', (_req, res) => res.render('about'));
-app.get('/gearpoints', (_req, res) => res.render('gearpoints'));
-app.get('/effortpoints', (_req, res) => res.render('effortpoints'));
 
 app.get('/logout', logout);
 app.get('/epgp', epgp);
 app.get('/bot/:guildid', viewbot);
+app.post('/bot/:guildid', editbot);
 app.post('/epgp/:guildid', addguild);
 app.get('/epgp/:guildid', viewguild);
 app.delete('/epgp/:guildid', deleteguild);

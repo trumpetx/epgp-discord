@@ -1,4 +1,4 @@
-const { db } = require('../db');
+const { db, bots } = require('../db');
 const { botUrl } = require('../discord');
 const _ = require('lodash');
 const GENERIC_ERROR = new Error('Invalid Guild ID');
@@ -32,17 +32,31 @@ module.exports.viewbot = (req, res) => {
   if (!isUser(req)) throw GENERIC_ERROR;
   const model = isAdmin(req) ? { botUrl } : {};
   db.findOne({ id: guildid }, (err, guild) => {
-    if (err) throw new Error(err);
+    if (err) logger.error(err);
     model.guild = guild;
+    bots.findOne({ id: guildid }, (err, bot) => {
+      if (err) logger.error(err);
+      model.bot = bot;
+      res.render('bot', model);
+    });
+  });
+};
 
-    res.render('bot', model);
+module.exports.editbot = (req, res) => {
+  const guildid = req.params.guildid;
+  if (!isAdmin(req)) throw GENERIC_ERROR;
+  console.log(req.body);
+  const disableBot = req.body.disableBot === 'true';
+  bots.update({ id: guildid }, { $set: { disabled: disableBot } }, {}, (err, _updatedCount) => {
+    err && logger.error(err);
+    res.redirect('/bot/' + guildid);
   });
 };
 
 module.exports.deleteguild = (req, res) => {
   const guildid = req.params.guildid;
   if (!isAdmin(req)) throw GENERIC_ERROR;
-  db.remove({ id: guildid }, (err, numRemoved) => {
+  db.remove({ id: guildid }, (err, _numRemoved) => {
     if (err) throw new Error(err);
     res.redirect('/epgp');
   });

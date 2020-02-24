@@ -7,6 +7,12 @@ $(function() {
     pageLength: 25,
     order: [[3, 'desc']]
   });
+  $('#exampleTable').DataTable({
+    paging: false,
+    searching: false,
+    bInfo: false,
+    order: [[3, 'desc']]
+  });
   $('#backups').DataTable({
     pageLength: 3,
     ordering: false,

@@ -1,68 +1,181 @@
 <div id="help-content">
-  
-<h1><a name="The_System"></a>The System</h1>
 
-<h2><a name="Introduction"></a>Introduction</h2>
-
-<p>EPGP stands for <em>Effort Points/Gear
-Points</em>. <a href="/effortpoints">Effort Points</a> (EP)
-quantify the effort each member put towards the, hopefully common,
-guild goals. <a href="/gearpoints">Gear Points</a> (GP) quantify
-what loot each member got back in return. Loot priority (PR) is
-computed as the quotient of the two:</p>
-
-<pre>PR = EP/GP</pre>
-
-<p>The person with the higher PR gets the first say on loot. As a result,
-the more effort you put the more gear you receive. As a matter of
-fact, the gear you receive is <strong>proportional</strong> to the
-effort you put. EPGP is based on this simple principle, but there are
-some complexities that need to be dealt with which will be covered
-below.</p>
-
-<h2><a name="Decay"></a>Decay</h2>
-
-<p>In order to award recent effort more than past effort, which in
-effect avoids PR hoarding for veterans and enables new coming and
-dedicated members of a guild to be awarded properly, EPGP supports a
-decay mechanism. Decay simply removes a chunk of EP and GP from the
-totals, effectively leaving PR unchanged. For example with a decay of
-10% applied each week, for each 7 days that pass your effort's
-rewards get diminished by 10%. The effort you put 10 weeks ago will
-only be worth 34.8% of what it did when you received it (
-(1-0.1)<sup>10</sup>).</p>
-
-<h2><a name="Priming_the_system"></a>Priming the system</h2>
-
-<p>A loot system should behave reasonably not only in its
-steady state but also when new members join a guild and the
-guild's efforts. For this reason some extra parameters need to be
-setup.</p>
-
-<h3><a name="Base_GP"></a>Base GP</h3>
-
-<p>Base GP adds a certain GP to each member of a guild. This means the
-final GP of each member is: GP = BaseGP + RealGP. All PR computations
-happen on GP not BaseGP or RealGP. Decay also applies to GP as a whole
-but it only diminishes RealGP. As such GP can never be lower than
-BaseGP. For example, say we have BaseGP = 100 and RealGP =
-10. Applying a 10% decay will result in RealGP = 0 for a total of 100
-GP.</p>
-
-<p>Base GP prevents new recruits or long time inactive members from
-trumping your dedicated members just because their GP is 0 and thus
-their PR infinite.</p>
-
-<h3><a name="Min_EP"></a>Min EP</h3>
-
-<p>Min EP puts a limit, which members should exceed in order to have
-any loot priority. This is more or less an attendance check and a road
-block for new members to reach a point after which they can need on
-loot. Anyone below MinEP has in effect lower PR then everyone above
-MinEP even if their effective PR is higher. For example MinEP = 10000
-and member A has 20000 EP and 4000 GP for 5 PR and member B has 1000
-EP and 100 GP for 10 PR. In this case member A has higher priority for
-loot since he/she is above the MinEP threshold even though his/her PR
-is lower than member B.</p>
-
+<div class="card">
+  <div class="card-body">
+  <h4 class="card-title">tl;dr</h4>
+      <div>EP: <a href="#effortpoints">Effort Points</a> - Given out by your guild for positive things like attendance, killing dragons, and farming mats.</div>
+      <div>GP: <a href="#gearpoints">Gear Points</a> - Earned by you for taking gear</div>
+      <div>PR: <a href="#priorityranking">Priority Ranking</a>&nbsp;&nbsp;&nbsp;
+      <math xmlns="http://www.w3.org/1998/Math/MathML">
+        <mrow>
+          <mfrac>
+            <mrow>
+              <mo>EP</mo>
+            </mrow>
+            <mrow>
+              <mn>GP</mn>
+            </mrow>
+          </mfrac>
+        </mrow>
+      </math>&nbsp;&nbsp;&nbsp;The value used to determine who gets what loot (higher is better)</div>
+  </div>
+</div>
+<br/><br/>
+<a name="effortpoints"></a>
+<div class="card">
+  <div class="card-body">
+  <h4 class="card-title">Effort Points</h4>
+      <p>
+        Effort points are earned.  Guilds can decide how best to hand them out; however, common methods include: X amount for killing a boss.
+        Y amount every 15 minutes in the raid (or on standby).  Guild leadership can provide EP for anything!  Farming fire pots?  EP!  Helping 
+        attune people? EP!  Who gets what is up to YOUR GUILD and your guild alone.  What works for one guild might not work for another.
+      </p>
+      <p>
+        These points earned are inflationary by nature.  The <a href="#decay">Decay</a> in the system will handle keeping hoarding in check.  
+        The reason why the inflation does not matter is because it is the ratio of EP / GP that matters.  So long as everyone has an equal way 
+        to gain EP, there should be no imbalance.  If you hand out millions of EP, you'd be doing ratios like 750 vs 800.  If you're handing out 
+        tens of EP, it might be .075 vs .080.  Again, the EP / GP ratio compared to other member's ratio matters, not the actual value.
+      </p>
+  </div>
+</div>
+<br/><br/>
+<a name="gearpoints"></a>
+<div class="card">
+  <div class="card-body">
+  <h4 class="card-title">Gear Points</h4>
+      <p>Gear points are calculated by this standard formula:<br/><br/>
+      <math xmlns="http://www.w3.org/1998/Math/MathML">
+        <mi>BASE_GP</mi>
+        <mo>&#xD7;</mo>
+        <msup>
+          <mi>2</mi>
+          <mn>
+            <mo>(</mo>
+            <mfrac>
+              <mrow>
+                <mi>LEVEL</mi>
+                <mo>-</mo>
+                <mi>STANDARD_ILVL</mi>
+              </mrow>
+              <mrow>
+                <mi>ILVL_DENOMINATOR</mi>
+              </mrow>
+            </mfrac>
+            <mo>&#xD7;</mo>
+            <mi>SLOT_SCALE</mi>
+            <mo>)</mo>
+          </mn>
+        </msup>
+      </math><br/>
+      </p>
+      <p>If you download the EPGP Classic Addon, it will show the GP value for items in the tooltip.</p>
+  </div>
+</div>
+<br/><br/>
+<a name="priorityranking"></a>
+<div class="card">
+  <div class="card-body">
+  <h4 class="card-title">Priority Ranking</h4>
+      <p>
+        This is the number that affects who loots what.  The full formula for calculating this is:<br/><br/>
+        <math xmlns="http://www.w3.org/1998/Math/MathML">
+          <mrow>
+            <mo>PR</mo>
+            <mo>=</mo>
+            <mfrac>
+              <mrow>
+                <mo>EP</mo>
+              </mrow>
+              <mrow>
+                <mn>BASE_GP + EARNED_GP</mn>
+              </mrow>
+            </mfrac>
+          </mrow>
+        </math>
+      </p>
+      <p>
+        This value can range anywhere from thousands earned divided by <a href="#basegp">Base GP</a> (no loot taken yet) to thousands divided by thousands.
+        The actual size of this number does not matter.  The order in relation to everyone else is what matters.
+      </p>
+      <h6>Example:</h6>
+      <table id="exampleTable" class="table table-sm table-bordered table-striped table-dark">
+        <thead>
+          <tr><td>Member</td><td>EP</td><td>GP</td><td>PR</td></tr>
+        </thead>
+        <tr><td>Alpha</td><td>4800</td><td>3250</td><td>{{div 4800 3250}}</td></tr>
+        <tr><td>Bravo</td><td>1250</td><td>1500</td><td>{{div 1250 1500}}</td></tr>
+        <tr><td>Charlie</td><td>5200</td><td>9000</td><td>{{div 5200 9000}}</td></tr>
+      </table>
+      <p>In this example, Alpha has a much higher PR than Bravo or Charlie so they would be first in line for loot.  Even though Bravo has far fewer EP than Charlie, his PR ratio is higher so Bravo would be next in line for loot with Charlie being last due to the high GP (gear taken) making his ratio lower than the rest.</p>
+  </div>
+</div>
+<br/><br/>
+<a name="decay"></a>
+<div class="card">
+  <div class="card-body">
+  <h4 class="card-title">Decay</h4>
+    <p>
+      The key component of EP/GP is decay.  This is what makes the system viable over the long term.  It both decays EP -AND- GP so that effort you put in 4 weeks ago 
+      benefits you less than effort put in last week AND the loot you took 4 weeks ago affects you less than the loot you took last week.  The goal here is to incentivize 
+      consistent week to week attendance and allowing new members to jump right into the fray without starting too far behind.  It also lets someone take a TON of gear 1 
+      week not be "in debt" forever.  Their "debt" will decay week by week.
+    </p>
+    <p>
+      Decay values can vary from guild to guild.  Normal levels of decay vary between 10-30%.  Obviously, higher decay = &quot;What have you done for me lately&quot; more 
+      than lower levels of decay.  The lower the decay, the higher a points hoarder can maintain a perma-lead and the longer loot affects the bottom line.
+    </p>
+  </div>
+</div>
+<br/><br/>
+<a name="basegp"></a>
+<div class="card">
+  <div class="card-body">
+  <h4 class="card-title">Base GP</h4>
+    <math xmlns="http://www.w3.org/1998/Math/MathML">
+      <mrow>
+        <mo>TOTAL_GP</mo>
+        <mo>=</mo>
+        <mn>BASE_GP + EARNED_GP</mn>
+      </mrow>
+    </math><br/><br/>
+    <p>
+      Base GP is the &quot;floor&quot; of how low your GP can be.  It's also where you start at so that your initial PR is 0 (0 EP earned divided by BASE_GP -- a positive, non-zero number)
+    </p>
+    <p>
+      Higher values of BASE_GP will mean that new recruits or long time inactive members will start at a lower ratio than most.  It is important to remember, however, that PR is what matters.
+      Setting BASE_GP to a modest level (about the cost of 1 item) will set someone back just enough so that they have to earn their place in line, but it won't be so far back that they're on rot 
+      loot duty forever.
+    </p>
+    <p>
+      <b>Example 1000 BASE_GP, 200 EP per kill:</b><br/><br/>
+      Noob @ Lucifron: 0/1000 = 0.0 PR<br/>
+      Legend @ Lucifron: 7500/5000 = 1.5 PR<br/><br/>
+      Noob @ Garr: 800/1000 = 0.8 PR<br/>
+      Legend @ Garr: 8300/5000 = 1.67 PR<br/><br/>
+      Noob @ Ranaros: 1600/1000 = 1.6 PR<br/>
+      Legend @ Ragnaros: 8300/5000 = 1.82 PR<br/>
+    </p>
+    You can see how while Noob started behind, he was able to almost catch up to Legend by the end as it relates to PR.  Setting a BASE_GP at a higher level would mean that Noob would have more to 
+    catch up on.  A lower level would mean that Noob would climb the prority ranking faster.  Once again, remember that it's the PR that matters!
+  </div>
+</div>
+<br/><br/>  
+<a name="mineep"></a>
+<div class="card">
+  <div class="card-body">
+  <h4 class="card-title">Minimum EP</h4>
+    <p>
+      Minimum EP is exactly what it sounds like.  It's a way to have a mathmeatical attendance check to be eligible for loot.  Because you only lose EP through decay, the loot master can consider how
+      much EP is earned on average and calculate how many typical raids someone could miss to maintain an EP of X where X is ideally somewhere above Minimum EP.  If you're not interested in attendance
+      checks, leaving this value at 0 is fine.
+    </p>
+    <p>
+      <b>Example 1000 EP earned per raid, MIN_EP = 1000, 10% decay:</b><br/><br/>
+      Flaky raids @ Week 1: 1000<br/>
+      Flaky absent @ Week 2: 900<br/>
+      Flaky absent @ Week 3: 800<br/>
+      Flaky absent @ Week 4: 700<br/>
+      Flaky tries to loot something with a PR of 0.7, but is passed over for someone else because their EP was &lt; MIN_EP<br/>
+    </p>
+  </div>
 </div>

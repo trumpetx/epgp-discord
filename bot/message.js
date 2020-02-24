@@ -36,7 +36,7 @@ const handleMessage = (guild, bot, message, args, command) => {
   let reply = [];
   const notConfigured = _.size(guild) === 0 || _.size(guild.backups) === 0;
   const memberAdmin = isAdmin(message);
-  if (!(memberAdmin && command !== 'config') && bot.disabled) {
+  if (!(memberAdmin && command === 'config') && bot.disabled) {
     // Silently return unless an admin is processing configuration
     return;
   } else if (startsWithIgnoreCase(command, 'help')) {
@@ -56,9 +56,7 @@ const handleMessage = (guild, bot, message, args, command) => {
       if (value === 'true' || value === 'false') {
         value = value === 'true';
       }
-      bots.update({ id: guild.id }, { [key]: value }, err => {
-        if (err) logger.error(err);
-      });
+      bots.update({ id: guild.id }, { $set: { [key]: value } }, {}, (err, _updatedCount) => err && logger.error(err));
       reply.push(`OK! ${key}=${value}`);
     }
   } else if (args.length === 0 && !_.isEmpty(command)) {
@@ -67,6 +65,7 @@ const handleMessage = (guild, bot, message, args, command) => {
     if (!entry) {
       reply.push('No match :/');
     } else {
+      bots.update({ id: guild.id }, { $inc: 'requestCount' }, {}, (err, _updatedCount) => err && logger.error(err));
       reply.push(entry[0] + '\nEP: ' + entry[1] + '\nGP: ' + entry[2] + '\nPR: ' + _.toNumber(entry[1]) / _.toNumber(entry[2]));
       deleteMsg(message);
     }

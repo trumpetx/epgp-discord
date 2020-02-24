@@ -1,6 +1,44 @@
-{{#if guild.admin}}
-  <div style="float:right;">
-    <div><a class="btn btn-secondary" target="_new" href="{{botUrl}}" role="button">Add Discord Bot</a></div>
+{{#if serverStatus.online}}
+  {{#if bot}}
+    {{#if bot.disabled}}
+      <div class="alert alert-warning" role="alert">
+        The Discord bot is currently disabled for your server
+      </div>
+    {{else}}
+      <div class="alert alert-success" role="alert">
+        The Discord bot is set up and active for your server
+      </div>  
+    {{/if}}
+    <h2>{{guild.name}} Bot</h2>
+  {{else}}
+    <div class="alert alert-danger" role="alert">
+      The Discord bot has not been added to your server
+    </div>
+    {{#unless guild.admin}}
+      A user with ADMIN or MANAGE_GUILD permissions needs to come to this page to add the bot to the Discord server
+    {{/unless}}
+  {{/if}}
+  {{#if guild.admin}}
+    <div style="float:right;">
+      {{#if bot}}
+        {{#if bot.disabled}}
+          <form method="POST" action="/bot/{{guild.id}}">
+            <input type="hidden" name="disableBot" value="false" />
+            <button type="submit" class="btn btn-success">Enable Bot</button>
+          </form>
+        {{else}}
+          <form method="POST" action="/bot/{{guild.id}}">
+            <input type="hidden" name="disableBot" value="true" />
+            <button type="submit" class="btn btn-warning">Disable Bot</button>
+          </form>      
+        {{/if}}    
+      {{else}}
+        <div><a class="btn btn-secondary" target="_new" href="{{botUrl}}" role="button">Add Discord Bot</a></div>
+      {{/if}}
+    </div>
+  {{/if}}
+{{else}}
+  <div class="alert alert-danger" role="alert">
+    The Discord bot is currently offline
   </div>
 {{/if}}
-<h2>{{guild.name}} Bot</h2>

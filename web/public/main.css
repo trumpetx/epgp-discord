@@ -19,3 +19,5 @@ table.dataTable tbody tr {
 .green {
   color: rgb(0, 180, 0);
 }
+
+.MathJax { font-size: 2em !important; }
