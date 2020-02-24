@@ -65,7 +65,7 @@ const handleMessage = (guild, bot, message, args, command) => {
     if (!entry) {
       reply.push('No match :/');
     } else {
-      bots.update({ id: guild.id }, { $inc: 'requestCount' }, {}, (err, _updatedCount) => err && logger.error(err));
+      //bots.update({ id: guild.id }, { $inc: 'requestCount' }, {}, (err, _updatedCount) => err && logger.error(err));
       reply.push(entry[0] + '\nEP: ' + entry[1] + '\nGP: ' + entry[2] + '\nPR: ' + _.toNumber(entry[1]) / _.toNumber(entry[2]));
       deleteMsg(message);
     }
