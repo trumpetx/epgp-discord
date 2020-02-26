@@ -1,0 +1,23 @@
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/epgp/{{guild.id}}">{{guild.name}}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{replaceAfterIncludes member '-'}}</li>
+  </ol>
+</nav>
+
+{{#if loot}}
+<table id="loot" class="table table-sm table-bordered table-striped table-dark">
+  <thead>
+    <tr><td>Item</td><td>GP</td><td>Looted</td></tr>
+  </thead>
+  {{#each loot}}
+    <tr>
+      <td><a href="https://classic.wowhead.com/item={{item}}" target="_new" data-wowhead="item={{item}}&domain=classic">{{item}}</a></td>
+      <td>{{gp}}</td>
+      <td class="narrow" data-sort="{{timestamp date}}">{{dtFormat date 'YYYY-MM-DD'}}</td>
+    </tr>
+  {{/each}}
+</table>
+{{else}}
+<p>No loot taken yet!</p>
+{{/if}}

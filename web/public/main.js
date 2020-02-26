@@ -21,5 +21,11 @@ $(function() {
       [3, 10, 25, 50, 'All']
     ]
   });
+  $('#loot').DataTable({
+    paging: false,
+    searching: false,
+    bInfo: false,
+    order: [[2, 'desc']]
+  });
   $('.confirm').on('click', _evt => confirm('Are you sure?'));
 });

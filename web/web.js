@@ -13,11 +13,12 @@ const app = (module.exports = express());
 const { discordUrl } = require('../discord');
 const logout = require('./logout');
 const epgp = require('./epgp');
-const { addguild, viewguild, deleteguild, uploadbackup, viewbot, editbot } = require('./epgp_guild');
+const { addguild, viewguild, deleteguild, uploadbackup, viewbot, editbot, viewloot } = require('./epgp_guild');
 const oauth = require('./oauth');
 const _ = require('lodash');
 const { serverStatus } = require('../bot/botserver');
 const { db, bots } = require('../db');
+const moment = require('moment');
 
 app.use(helmet());
 app.use(methodOverride('_method'));
@@ -31,6 +32,8 @@ app.engine(
     layoutsDir: path.join(__dirname, 'layouts'),
     partialsDir: path.join(__dirname, 'partials'),
     helpers: {
+      dtFormat: (dt, format) => moment(dt).format(format),
+      timestamp: date => date.getTime(),
       div: (a, b) => (b === 0 ? NaN : _.round(a / b, 2)),
       replaceAfterIncludes: (a, b) => a.substring(0, a.lastIndexOf(b)),
       reverse: function(context) {
@@ -110,6 +113,7 @@ app.get('/bot/:guildid', viewbot);
 app.post('/bot/:guildid', editbot);
 app.post('/epgp/:guildid', addguild);
 app.get('/epgp/:guildid', viewguild);
+app.get('/epgp/:guildid/loot/:member', viewloot);
 app.delete('/epgp/:guildid', deleteguild);
 app.post('/epgp/:guildid/upload', uploadbackup);
 app.get('/oauth/redirect', oauth);

@@ -16,11 +16,12 @@
 <h2>{{guild.name}}</h2>
 
 {{#if current}}
-<table class="table table-bordered table-striped table-dark" style="width: 300px;">
+<table class="table table-sm table-bordered table-striped table-dark" style="width: 300px;">
   <tr><td>Guild:</td><td>{{current.guild}}</td></tr>
   <!--tr><td>Region:</td><td>{{current.region}}</td></tr-->
-  <tr><td>Min EP:</td><td>{{current.min_ep}}</td></tr>
   <tr><td>Base GP:</td><td>{{current.base_gp}}</td></tr>
+  <tr><td>Decay %:</td><td>{{current.decay_p}}</td></tr>
+  <tr><td>Min EP:</td><td>{{current.min_ep}}</td></tr>
   <tr><td>Extras:</td><td>{{current.extras_p}}</td></tr>
 </table>
 <table id="currentRoster" class="table table-bordered table-striped table-dark">
@@ -28,7 +29,7 @@
     <tr><td>Member</td><td>EP</td><td>GP</td><td>PR</td></tr>
   </thead>
   {{#each current.roster}}
-    <tr><td>{{replaceAfterIncludes this.[0] '-'}}</td><td>{{this.[1]}}</td><td>{{this.[2]}}</td><td>{{div this.[1] this.[2]}}</td></tr>
+    <tr><td><a href="/epgp/{{../guild.id}}/loot/{{this.[0]}}">{{replaceAfterIncludes this.[0] '-'}}</a></td><td>{{this.[1]}}</td><td>{{this.[2]}}</td><td>{{div this.[1] this.[2]}}</td></tr>
   {{/each}}
 </table>
 <br/><br/>
@@ -39,7 +40,7 @@
   </thead>
   {{#reverse guild.backups}}<tr>
     <td class="narrow">{{roster.length}}</td>
-    <td>{{timestampDate}}</td>
+    <td>{{dtFormat timestampDate 'YYYY-MM-DD HH:mm'}}</td>
     <td class="narrow">
       <a class="btn btn-primary btn-sm" href="/epgp/{{../guild.id}}?index={{index}}" role="button">View</a>
     </td>
