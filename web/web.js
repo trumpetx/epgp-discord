@@ -13,7 +13,7 @@ const app = (module.exports = express());
 const { discordUrl } = require('../discord');
 const logout = require('./logout');
 const epgp = require('./epgp');
-const { addguild, viewguild, deleteguild, uploadbackup, viewbot, editbot, viewloot } = require('./epgp_guild');
+const { addguild, viewguild, deleteguild, uploadbackup, viewbot, editbot, viewloot, addAlias } = require('./epgp_guild');
 const oauth = require('./oauth');
 const _ = require('lodash');
 const { serverStatus } = require('../bot/botserver');
@@ -34,8 +34,6 @@ app.engine(
     helpers: {
       dtFormat: (dt, format) => moment(dt).format(format),
       timestamp: date => date.getTime(),
-      div: (a, b) => (b === 0 ? NaN : _.round(a / b, 2)),
-      replaceAfterIncludes: (a, b) => a.substring(0, a.lastIndexOf(b)),
       reverse: function(context) {
         var options = arguments[arguments.length - 1];
         var ret = '';
@@ -116,6 +114,7 @@ app.get('/epgp/:guildid', viewguild);
 app.get('/epgp/:guildid/loot/:member', viewloot);
 app.delete('/epgp/:guildid', deleteguild);
 app.post('/epgp/:guildid/upload', uploadbackup);
+app.post('/epgp/:guildid/alias', addAlias);
 app.get('/oauth/redirect', oauth);
 
 //  DO THIS LAST

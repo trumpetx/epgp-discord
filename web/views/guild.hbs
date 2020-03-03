@@ -8,6 +8,9 @@
     <button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#uploadModal">
       <i class="fa fa-cloud-upload" aria-hidden="true"></i>&nbsp;&nbsp;Upload Backup
     </button><br/><br/>
+    <button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#aliasModal">
+      <i class="fa fa-pencil" aria-hidden="true"></i>&nbsp;&nbsp;Customize Guild
+    </button><br/><br/>
     <div><a class="btn btn-secondary" href="/bot/{{guild.id}}" role="button">
       <i class="fa fa-android" aria-hidden="true"></i>&nbsp;&nbsp;Manage Discord Bot
     </a></div>
@@ -20,16 +23,25 @@
   <tr><td>Guild:</td><td>{{current.guild}}</td></tr>
   <!--tr><td>Region:</td><td>{{current.region}}</td></tr-->
   <tr><td>Base GP:</td><td>{{current.base_gp}}</td></tr>
-  <tr><td>Decay %:</td><td>{{current.decay_p}}</td></tr>
+  <tr><td>Decay:</td><td>{{current.decay_p}}%</td></tr>
   <tr><td>Min EP:</td><td>{{current.min_ep}}</td></tr>
   <tr><td>Extras:</td><td>{{current.extras_p}}</td></tr>
 </table>
 <table id="currentRoster" class="table table-bordered table-striped table-dark">
   <thead>
-    <tr><td>Member</td><td>EP</td><td>GP</td><td>PR</td></tr>
+    <tr><td>Member</td><td>Class</td><td>EP</td><td>GP</td><td>PR</td></tr>
   </thead>
   {{#each current.roster}}
-    <tr><td><a href="/epgp/{{../guild.id}}/loot/{{this.[0]}}">{{replaceAfterIncludes this.[0] '-'}}</a></td><td>{{this.[1]}}</td><td>{{this.[2]}}</td><td>{{div this.[1] this.[2]}}</td></tr>
+    <tr>
+      <td>
+        <a href="/epgp/{{../guild.id}}/loot/{{name}}" class="{{class}}">{{displayName}}</a>
+        {{#if note}}<br/><span class="text-muted small">{{note}}</span>{{/if}}
+      </td>
+      <td>{{class}}</td>
+      <td>{{ep}}</td>
+      <td>{{gp}}</td>
+      <td>{{pr}}</td>
+    </tr>
   {{/each}}
 </table>
 <br/><br/>
@@ -48,11 +60,74 @@
 </table>
 {{/if}}
 
+<div class="modal" tabindex="-1" role="dialog" id="aliasModal">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <form method="POST" action="/epgp/{{guild.id}}/alias" id="aliasForm">
+        <div class="modal-header">
+          <h5 class="modal-title">Customize Member Information</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group simpleModeGroup">
+            <label for="characterName">Member</label>
+            <select class="form-control" id="characterName" name="characterName">
+              {{#each current.roster}}
+                <option value="{{name}}">{{displayName}}</option>
+              {{/each}}
+            </select>
+          </div>
+          <div class="form-group simpleModeGroup">
+            <label for="characterClass">Class</label>
+            <select class="form-control" id="characterClass" name="characterClass">
+              <option value="">Not Set</option>
+              <option value="Druid">Druid</option>
+              <option value="Hunter">Hunter</option>
+              <option value="Mage">Mage</option>
+              <option value="Paladin">Paladin</option>
+              <option value="Priest">Priest</option>
+              <option value="Rogue">Rogue</option>
+              <option value="Shaman">Shaman</option>
+              <option value="Warlock">Warlock</option>
+              <option value="Warrior">Warrior</option>
+            </select>
+          </div>
+          <div class="form-group simpleModeGroup">
+            <label for="characterAlias">Character Alias</label>
+            <input type="text" class="form-control" name="characterAlias" id="characterAlias"
+              aria-describedby="characterAliasHelp" placeholder="Another Name">
+            <small id="characterAliasHelp" class="form-text text-muted">Add a custom alias to this character
+              name.</small>
+          </div>
+          <div class="form-group simpleModeGroup">
+            <label for="characterNote">Character Note</label>
+            <input type="text" class="form-control" name="characterNote" id="characterNote"
+              aria-describedby="characterNoteHelp" placeholder="Raid Leader">
+            <small id="characterNoteHelp" class="form-text text-muted">Place a small note below this character's name</small>
+          </div>
+          <div class="form-group advancedModeGroup">
+            <label for="advancedImport">Advanced Import</label>
+            <textarea aria-describedby="advancedImportHelp"  class="form-control" name="advancedImport" id="advancedImport" rows="10" cols="5">{{customJson}}</textarea>
+            <small id="advancedImportHelp" class="form-text text-muted">Upload a JSON import of the entire guild.  Copy/paste the above text to a text editor, edit it, and paste it back in this box.</small>
+          </div>
+          <div class="center"><input id="advancedModeCheckbox" type="checkbox" data-toggle="toggle" data-on="Simple Mode" data-off="Advanced Mode" data-width="150"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary">Submit</button>
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 
 <div class="modal" tabindex="-1" role="dialog" id="uploadModal">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
-      <form method="POST" action="/epgp/{{guild.id}}/upload">
+      <form method="POST" action="/epgp/{{guild.id}}/upload" id="uploadBackupForm">
         <div class="modal-header">
           <h5 class="modal-title">Upload your EP/GP Backup Data</h5>
           <button type="button" class="close" data-dismiss="modal" aria-label="Close">

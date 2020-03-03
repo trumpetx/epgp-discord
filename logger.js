@@ -9,7 +9,7 @@ const log_format = combine(
 );
 
 const logger = winston.createLogger({
-  level: 'info',
+  level: 'warn',
   format: log_format,
   transports: [
     new winston.transports.DailyRotateFile({

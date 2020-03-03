@@ -1,5 +1,6 @@
 const { db, bots } = require('../db');
 const { botUrl } = require('../discord');
+const { logger } = require('../logger');
 const _ = require('lodash');
 const GENERIC_ERROR = new Error('Invalid Guild ID');
 const getGuild = req => req.session.guilds.find(g => g.id === req.params.guildid);
@@ -24,9 +25,46 @@ module.exports.viewguild = (req, res) => {
     if (err) throw new Error(err);
     const index = req.query.index || (guild.backups || []).length - 1;
     const current = guild.backups && guild.backups[index];
-    res.render('guild', { guild, index, current });
+    const customJson = _.keyBy(
+      current.roster.map(entry => guildAliasMap(guild, entry)),
+      'name'
+    );
+    _.forEach(customJson, o => (o.name = undefined));
+    current.roster = current.roster.map(entry => guildMemberMap(guild, entry)).sort((a, b) => (a.displayName || '').localeCompare(b.displayName));
+    res.render('guild', { guild, index, current, customJson: JSON.stringify(customJson, null, 2) });
   });
 };
+
+function guildAliasMap(guild, member) {
+  return {
+    name: member[0],
+    displayName: displayName(guild, member[0]),
+    class: displayClass(guild, member[0]),
+    note: displayNote(guild, member[0])
+  };
+}
+
+function guildMemberMap(guild, member) {
+  return _.merge(guildAliasMap(guild, member), {
+    ep: member[1],
+    gp: member[2],
+    pr: member[2] === 0 ? NaN : _.round(member[1] / member[2], 2)
+  });
+}
+
+function getAlias(guild, member) {
+  return (guild.aliases && guild.aliases[member] && guild.aliases[member]) || {};
+}
+
+function displayName(guild, member) {
+  return getAlias(guild, member).alias || member.substring(0, member.lastIndexOf('-'));
+}
+function displayClass(guild, member) {
+  return getAlias(guild, member).class || '';
+}
+function displayNote(guild, member) {
+  return getAlias(guild, member).note || '';
+}
 
 module.exports.viewloot = (req, res) => {
   const guildid = req.params.guildid;
@@ -48,7 +86,12 @@ module.exports.viewloot = (req, res) => {
           })
           .sort((o1, o2) => o1.date - o2.date)
       : [];
-    res.render('loot', { guild, loot, member });
+    res.render('loot', {
+      guild,
+      loot,
+      member,
+      displayName: displayName(guild, member)
+    });
   });
 };
 
@@ -70,7 +113,6 @@ module.exports.viewbot = (req, res) => {
 module.exports.editbot = (req, res) => {
   const guildid = req.params.guildid;
   if (!isAdmin(req)) throw GENERIC_ERROR;
-  console.log(req.body);
   const disableBot = req.body.disableBot === 'true';
   bots.update({ id: guildid }, { $set: { disabled: disableBot } }, {}, (err, _updatedCount) => {
     err && logger.error(err);
@@ -128,15 +170,79 @@ module.exports.deleteguild = (req, res) => {
 [1581565448,"Allorraxx-Pagle","item:16851::::::::60:::::::",750],[1581566767,"Chronosduex-Pagle","item:16954::::::::60:::::::",-2000]],"timestamp":1582031872,"extras_p":100,"realm":"Pagle"}
  
  */
+function validateSchema(json) {
+  return json.guild && json.region && _.isArray(json.roster) && _.isArray(json.loot);
+}
+
 module.exports.uploadbackup = (req, res) => {
   const guildid = req.params.guildid;
   if (!isAdmin(req)) throw GENERIC_ERROR;
   const uploadBackup = JSON.parse(req.body.uploadBackup);
-  uploadBackup.uploadedDate = new Date();
-  // Unix timestamp to .js timestamp
-  uploadBackup.timestampDate = new Date(uploadBackup.timestamp * 1000);
-  db.update({ id: guildid }, { $push: { backups: uploadBackup } }, {}, err => {
-    if (err) throw new Error(err);
-    res.redirect('/epgp/' + guildid);
+  if (!validateSchema(uploadBackup)) {
+    res.redirect('/epgp/' + guildid + '?message=' + encodeURIComponent('Invalid Backup JSON'));
+  } else {
+    uploadBackup.uploadedDate = new Date();
+    // Unix timestamp to .js timestamp
+    uploadBackup.timestampDate = new Date(uploadBackup.timestamp * 1000);
+    db.update({ id: guildid }, { $push: { backups: uploadBackup } }, {}, err => {
+      if (err) throw new Error(err);
+      res.redirect('/epgp/' + guildid);
+    });
+  }
+};
+
+function validateImportSchema(json) {
+  return Object.keys(json).length > 0 && Object.keys(json).every(k => k.indexOf('-') !== -1);
+}
+
+function validateClass(clazz) {
+  clazz = (clazz || '').trim();
+  return clazz.match(/^(Druid|Hunter|Mage|Paladin|Priest|Rogue|Shaman|Warlock|Warrior)$/) ? clazz : undefined;
+}
+
+module.exports.addAlias = (req, res) => {
+  const guildid = req.params.guildid;
+  if (!isAdmin(req)) throw GENERIC_ERROR;
+  db.findOne({ id: guildid }, (err, guild) => {
+    if (err) logger.error(err);
+    if (req.body.advancedImport) {
+      const advancedImport = JSON.parse(req.body.advancedImport);
+      Object.keys(advancedImport).forEach(k => {
+        advancedImport[k] = _.pick(advancedImport[k], ['displayName', 'class', 'note']);
+        advancedImport[k].class = validateClass(advancedImport[k].class);
+        advancedImport[k].alias = advancedImport[k].displayName;
+        advancedImport[k].displayName = undefined;
+      });
+      if (!validateImportSchema(advancedImport)) {
+        logger.warn('Invalid JSON Schema -- skipping alias update');
+        console.log(advancedImport);
+        res.redirect('/epgp/' + guildid);
+        return;
+      } else {
+        guild.aliases = advancedImport;
+      }
+    } else if (
+      req.body.characterName &&
+      req.body.characterName.indexOf('-') !== -1 &&
+      (req.body.characterAlias || req.body.characterNote || req.body.characterClass)
+    ) {
+      const alias = (req.body.characterAlias || '').trim();
+      const note = (req.body.characterNote || '').trim();
+      guild.aliases = guild.aliases || {};
+      guild.aliases[req.body.characterName] = {
+        alias: alias === '' ? req.body.characterName.substring(0, req.body.characterName.lastIndexOf('-')) : alias,
+        class: validateClass(req.body.characterClass),
+        note: note === '' ? undefined : note
+      };
+    } else {
+      logger.warn('Invalid form submission -- skipping alias update');
+      console.log(req.body);
+      res.redirect('/epgp/' + guildid);
+      return;
+    }
+    db.update({ id: guildid }, guild, {}, err => {
+      if (err) throw new Error(err);
+      res.redirect('/epgp/' + guildid);
+    });
   });
 };
