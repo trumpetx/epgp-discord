@@ -1,18 +1,23 @@
 const { ADMIN_PERMISSION, MANAGE_GUILD } = require('../discord');
 
-module.exports.chunk = async (msg, chunkSize, sendFn) => {
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+module.exports.chunk = async (msg, chunkSize, sendFn, chuckHeader = '', chunkFooter = '') => {
+  chunkSize = chunkSize - chuckHeader.length - chunkFooter.length;
   let msgLength = 0;
   let idx = 0;
   for (let i = 0; i < msg.length; i++) {
     if (msgLength + msg[i].length > chunkSize) {
-      sendFn(msg.slice(idx, i).join('\n'));
+      sendFn(chuckHeader + msg.slice(idx, i).join('\n') + chunkFooter);
       idx = i;
       msgLength = 0;
       await sleep(1000);
     }
     msgLength += msg[i].length;
   }
-  sendFn(msg.slice(idx, msg.length).join('\n'));
+  sendFn(chuckHeader + msg.slice(idx, msg.length).join('\n') + chunkFooter);
 };
 
 module.exports.deleteMsg = async msg => {

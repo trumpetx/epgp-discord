@@ -36,13 +36,18 @@ const handleMessage = (guild, bot, message, args, command) => {
   let reply = [];
   const notConfigured = _.size(guild) === 0 || _.size(guild.backups) === 0;
   const memberAdmin = isAdmin(message);
+  const backups = guild.backups || [];
+  const current = backups[backups.length - 1];
+  const roster = current && current.roster;
+  let chunkHeader = '';
+  let chunkFooter = '';
   if (!(memberAdmin && command === 'config') && bot.disabled) {
     // Silently return unless an admin is processing configuration
     return;
   } else if (startsWithIgnoreCase(command, 'help')) {
-    reply.push('EP/GP Bot Instructions:\n\n!epgp YourWowCharName');
+    reply.push('EP/GP Bot Instructions:\n\nThis message: `!epgp help`\nFull EPGP List: `!epgp`\nYour EPGP: `!epgp YourWowCharName`');
   } else if (notConfigured && !memberAdmin) {
-    reply.push('EPGP needs to be configured by an administrator: http://www.epgp.net/epgp');
+    reply.push(`EPGP needs to be configured by an administrator: ${props.hostname}${props.extPortString}/epgp`);
   } else if (notConfigured && memberAdmin) {
     reply.push(`Please visit ${props.hostname}${props.extPortString}/epgp to configure your guild and upload your EP/GP data.`);
   } else if (command === 'config') {
@@ -60,8 +65,7 @@ const handleMessage = (guild, bot, message, args, command) => {
       reply.push(`OK! ${key}=${value}`);
     }
   } else if (args.length === 0 && !_.isEmpty(command)) {
-    const current = guild.backups[guild.backups.length - 1];
-    const entry = current.roster.find(entry => startsWithIgnoreCase(entry[0], command));
+    const entry = roster && roster.find(entry => startsWithIgnoreCase(entry[0], command));
     if (!entry) {
       reply.push('No match :/');
     } else {
@@ -69,12 +73,28 @@ const handleMessage = (guild, bot, message, args, command) => {
       reply.push(entry[0] + '\nEP: ' + entry[1] + '\nGP: ' + entry[2] + '\nPR: ' + _.toNumber(entry[1]) / _.toNumber(entry[2]));
       deleteMsg(message);
     }
+  } else {
+    const calcPr = entry => (_.toNumber(entry[1]) / _.toNumber(entry[2])).toFixed(2);
+    if (!roster) {
+      reply.push('No data has been uploaded yet :/');
+    } else {
+      chunkHeader = '```\nName                     EP          GP          PR\n';
+      chunkFooter = '\n```';
+      roster
+        .sort((e1, e2) => calcPr(e2) - calcPr(e1))
+        .forEach(entry => {
+          const name = entry[0].substring(0, entry[0].lastIndexOf('-')).padEnd(25, ' ');
+          const ep = ('' + entry[1]).padEnd(12, ' ');
+          const gp = ('' + entry[2]).padEnd(12, ' ');
+          reply.push(`${name}${ep}${gp}${calcPr(entry)}`);
+        });
+    }
   }
   if (msg.length > 0) {
-    chunk(msg, 1900, c => message.channel.send(c).catch(errorHandler));
+    chunk(msg, 1900, c => message.channel.send(c).catch(errorHandler), chunkHeader, chunkFooter);
   }
   if (reply.length > 0) {
-    chunk(reply, 1900, c => message.author.send(c).catch(errorHandler));
+    chunk(reply, 1900, c => message.author.send(c).catch(errorHandler), chunkHeader, chunkFooter);
   }
   if (reply.length > 0 || msg.length > 0) {
     deleteMsg(message);
