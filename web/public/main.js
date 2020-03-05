@@ -1,4 +1,5 @@
 $(function() {
+  const BASIC_JSON_REGEX = /^\s*\{.*\}\s*$/;
   $('[data-toggle="tooltip"]').tooltip();
   $('#uploadModal').on('shown.bs.modal', function() {
     $('#uploadBackup').trigger('focus');
@@ -29,34 +30,49 @@ $(function() {
   });
   $('.confirm').on('click', _evt => confirm('Are you sure?'));
 
-  const validateInput = ($uploadBackup, condition, errorMessage) => {
+  const validateInput = ($modal, $input, condition, errorMessage) => {
     if (condition) {
       $alert = $(
         `<div class="alert alert-danger alert-dismissible alert-dismissible fade show center" role="alert">
           ${errorMessage}
-          <br/><br/>
-          <img src="/import.png"/>
-          <br/>
           <button type="button" class="close" data-dismiss="alert" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
         </div>`
       );
-      $uploadBackup.val('');
-      $('#uploadModal').modal('hide');
+      $input.val('');
+      $modal.modal('hide');
       $('.alert').remove();
       $('.header').after($alert);
     }
     return !condition;
   };
+  $('#aliasForm').on('submit', _evt => {
+    const $advancedImport = $(this).find('#advancedImport');
+    const $aliasModal = $('#aliasModal');
+    return validateInput(
+      $aliasModal,
+      $advancedImport,
+      $advancedImport.prop('disabled') || !$advancedImport.val().match(BASIC_JSON_REGEX),
+      'Invalid JSON - Make sure you copy/pasted the correct values'
+    );
+  });
   $('#uploadBackupForm').on('submit', _evt => {
     const $uploadBackup = $(this).find('#uploadBackup');
+    const $uploadModal = $('#uploadModal');
     return (
       validateInput(
+        $uploadModal,
         $uploadBackup,
         !!$uploadBackup.val().match(/^\s*#/),
-        'Unable to process the "Detailed Export" in .tsv format.  Please use the basic Export option.'
-      ) && validateInput($uploadBackup, !$uploadBackup.val().match(/^\s*\{.*\}\s*$/), 'Please paste the JSON "Export" from "Log"')
+        'Unable to process the "Detailed Export" in .tsv format.  Please use the basic Export option.<br/><br/><img src="/import.png"/><br/>'
+      ) &&
+      validateInput(
+        $uploadModal,
+        $uploadBackup,
+        !$uploadBackup.val().match(BASIC_JSON_REGEX),
+        'Please paste the JSON "Export" from "Log"<br/><br/><img src="/import.png"/><br/>'
+      )
     );
   });
   const onAdvancedChange = () => {
