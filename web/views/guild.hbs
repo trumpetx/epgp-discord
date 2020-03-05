@@ -55,8 +55,10 @@
     <td>{{dtFormat timestampDate 'YYYY-MM-DD HH:mm'}}</td>
     <td class="narrow">
       <a class="btn btn-primary btn-sm" href="/epgp/{{../guild.id}}?index={{index}}" role="button">View</a>
-      &nbsp;&nbsp;
-      <a class="btn btn-primary btn-sm" href="/epgp/{{../guild.id}}/export?index={{index}}" role="button">Export</a>
+      {{#if ../guild.admin}}
+        &nbsp;&nbsp;
+        <a class="btn btn-primary btn-sm" href="/epgp/{{../guild.id}}/export?index={{index}}" role="button">Export</a>
+      {{/if}}
     </td>
   </tr>{{/reverse}}
 </table>
