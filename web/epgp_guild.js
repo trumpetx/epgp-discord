@@ -95,6 +95,19 @@ module.exports.viewloot = (req, res) => {
   });
 };
 
+module.exports.viewexport = (req, res) => {
+  const guildid = req.params.guildid;
+  if (!isAdmin(req)) throw GENERIC_ERROR;
+  db.findOne({ id: guildid }, (err, guild) => {
+    if (err) logger.error(err);
+    const index = req.query.index || (guild.backups || []).length - 1;
+    const backup = index === -1 ? {} : guild.backups && guild.backups[index];
+    delete backup.uploadedDate;
+    delete backup.timestampDate;
+    res.json(backup);
+  });
+};
+
 module.exports.viewbot = (req, res) => {
   const guildid = req.params.guildid;
   if (!isUser(req)) throw GENERIC_ERROR;
@@ -115,7 +128,7 @@ module.exports.editbot = (req, res) => {
   if (!isAdmin(req)) throw GENERIC_ERROR;
   const disableBot = req.body.disableBot === 'true';
   bots.update({ id: guildid }, { $set: { disabled: disableBot } }, {}, (err, _updatedCount) => {
-    err && logger.error(err);
+    if (err) logger.error(err);
     res.redirect('/bot/' + guildid);
   });
 };

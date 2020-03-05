@@ -48,13 +48,15 @@
 <table id="backups" class="table table-sm table-bordered table-striped table-dark">
   <thead>
     <h4>All Backups:</h4>
-    <tr><th>Members</th><th>Date</th><td></td></tr>
+    <tr><th>Members</th><th>Date</th><td>Actions</td></tr>
   </thead>
   {{#reverse guild.backups}}<tr>
     <td class="narrow">{{roster.length}}</td>
     <td>{{dtFormat timestampDate 'YYYY-MM-DD HH:mm'}}</td>
     <td class="narrow">
       <a class="btn btn-primary btn-sm" href="/epgp/{{../guild.id}}?index={{index}}" role="button">View</a>
+      &nbsp;&nbsp;
+      <a class="btn btn-primary btn-sm" href="/epgp/{{../guild.id}}/export?index={{index}}" role="button">Export</a>
     </td>
   </tr>{{/reverse}}
 </table>
