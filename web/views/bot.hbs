@@ -9,16 +9,51 @@
         The Discord bot is set up and active for your server
       </div>  
     {{/if}}
-    <h2>{{guild.name}} Bot</h2>
+      <h3>{{guild.name}} Bot Instructions</h3>
+      <div class="card">
+        <div class="card-body">
+        <h4 class="card-title">!epgp</h4>
+          <pre>
+      Name                     EP          GP          PR
+      Roman                    5291        1000        5.29
+      Broandite                5208        1000        5.21
+      Torched                  4979        1000        4.98
+      Biffins                  4881        1000        4.88
+      Reliante                 4109        1000        4.11
+      Britiania                6670        1660        4.02
+      Brodoodle                6662        1678        3.97
+      Marker                   6670        1682        3.97
+      Doolie                   6670        1833        3.64
+      Bouncer                  6662        1836        3.63
+      Fishies                  5640        1552        3.63
+      Raxil                    6662        1935        3.44
+      Barta                    6670        1975        3.38
+      Towelet                  4705        1408        3.34
+          </pre>
+        </div>
+      </div>
+      <br/><br/>
+      <div class="card">
+        <div class="card-body">
+        <h4 class="card-title">!epgp Torched</h4>
+          <pre>
+      Torched-Server
+      EP: 6160
+      GP: 2695
+      PR: 2.2857142857142856
+          </pre>
+        </div>
+      </div>
+      <br/><br/>
   {{else}}
     <div class="alert alert-danger" role="alert">
       The Discord bot has not been added to your server
     </div>
-    {{#unless guild.admin}}
+    {{#unless isAdmin}}
       A user with ADMIN or MANAGE_GUILD permissions needs to come to this page to add the bot to the Discord server
     {{/unless}}
   {{/if}}
-  {{#if guild.admin}}
+  {{#if isAdmin}}
     <div style="float:right;">
       {{#if bot}}
         {{#if bot.disabled}}

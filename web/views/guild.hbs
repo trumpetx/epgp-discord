@@ -1,5 +1,5 @@
-{{#if guild.admin}}
-  <div style="float:right;">
+<div style="float:right;">
+  {{#if isAdmin}}
     <form method="POST" action="/epgp/{{guild.id}}?_method=DELETE">
       <button type="submit" class="btn btn-danger confirm">
         <i class="fa fa-trash" aria-hidden="true"></i>&nbsp;&nbsp;Delete Guild
@@ -11,11 +11,11 @@
     <button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#aliasModal">
       <i class="fa fa-pencil" aria-hidden="true"></i>&nbsp;&nbsp;Customize Guild
     </button><br/><br/>
-    <div><a class="btn btn-secondary" href="/bot/{{guild.id}}" role="button">
-      <i class="fa fa-android" aria-hidden="true"></i>&nbsp;&nbsp;Manage Discord Bot
-    </a></div>
-  </div>
-{{/if}}
+  {{/if}}
+  <div><a class="btn btn-secondary" href="/bot/{{guild.id}}" role="button">
+    <i class="fa fa-android" aria-hidden="true"></i>&nbsp;&nbsp;Discord Bot
+  </a></div>
+</div>
 <h2>{{guild.name}}</h2>
 
 {{#if current}}
@@ -55,7 +55,7 @@
     <td>{{dtFormat timestampDate 'YYYY-MM-DD HH:mm'}}</td>
     <td class="narrow">
       <a class="btn btn-primary btn-sm" href="/epgp/{{../guild.id}}?index={{index}}" role="button">View</a>
-      {{#if ../guild.admin}}
+      {{#if ../isAdmin}}
         &nbsp;&nbsp;
         <a class="btn btn-primary btn-sm" href="/epgp/{{../guild.id}}/export?index={{index}}" role="button">Export</a>
       {{/if}}

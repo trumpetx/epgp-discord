@@ -31,7 +31,7 @@ module.exports.viewguild = (req, res) => {
     );
     _.forEach(customJson, o => (o.name = undefined));
     current.roster = current.roster.map(entry => guildMemberMap(guild, entry)).sort((a, b) => (a.displayName || '').localeCompare(b.displayName));
-    res.render('guild', { guild, index, current, customJson: JSON.stringify(customJson, null, 2) });
+    res.render('guild', { isAdmin: isAdmin(req), guild, index, current, customJson: JSON.stringify(customJson, null, 2) });
   });
 };
 
@@ -111,7 +111,7 @@ module.exports.viewexport = (req, res) => {
 module.exports.viewbot = (req, res) => {
   const guildid = req.params.guildid;
   if (!isUser(req)) throw GENERIC_ERROR;
-  const model = isAdmin(req) ? { botUrl } : {};
+  const model = { isAdmin: isAdmin(req), botUrl };
   db.findOne({ id: guildid }, (err, guild) => {
     if (err) logger.error(err);
     model.guild = guild;
