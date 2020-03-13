@@ -25,15 +25,14 @@ module.exports.viewguild = (req, res) => {
     if (err) throw new Error(err);
     const index = req.query.index || (guild.backups || []).length - 1;
     const current = guild.backups && guild.backups[index];
+    let customJson = {};
     if(current) {
-      const customJson = _.keyBy(
+      customJson = _.keyBy(
         current.roster.map(entry => guildAliasMap(guild, entry)),
         'name'
       );
-      _.forEach(customJson, o => (o.name = undefined));
+      _.forEach(customJson, (v, k) => { v.name = undefined; });
       current.roster = current.roster.map(entry => guildMemberMap(guild, entry)).sort((a, b) => (a.displayName || '').localeCompare(b.displayName));
-    } else {
-      customJson = {};
     }
     res.render('guild', { isAdmin: isAdmin(req), guild, index, current, customJson: JSON.stringify(customJson, null, 2) });
   });
