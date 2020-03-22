@@ -73,16 +73,20 @@ app.use(
     store: new NedbStore({ filename: `${require('os').homedir()}/websessions.db` })
   })
 );
+function setState(req) {
+  req.session.state = req.session.state || uuidv4();
+  return req.session.state;
+}
 const loginFilter = (req, res, next) => {
   if (!req.session || !req.session.expires_at) {
-    res.redirect(discordUrl(req.session.state));
+    res.redirect(discordUrl(setState(req)));
   } else {
     next();
   }
 };
 ['/epgp*', '/bot*'].forEach(path => app.use(path, loginFilter));
 app.use((req, res, next) => {
-  req.session.state = req.session.state || uuidv4();
+  setState(req);
   if (req.session && req.session.expires_at) {
     res.locals.session = req.session;
   } else {

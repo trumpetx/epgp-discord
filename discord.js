@@ -38,11 +38,19 @@ const oauth_options = code => {
 
 const discord_base = (callback, options) => {
   logger.info('Discord request: ' + options.url);
-  request(options, (error, _response, body) => {
+  request(options, (error, response, body) => {
     if (error) {
+      logger.error(error);
       throw new Error(error);
+    } else if (response.statusCode != 200) {
+      logger.error('Bad Status on response: ' + response.statusCode + '\n\n' + body);
     } else {
-      callback(JSON.parse(body));
+      try {
+        callback(JSON.parse(body));
+      } catch (e) {
+        logger.error(e.toString());
+        throw e;
+      }
     }
   });
 };
