@@ -18,7 +18,7 @@ const discord_options = (token, url, method) => {
   };
 };
 
-const oauth_options = code => {
+const oauth_base_options = form => {
   return {
     method: 'POST',
     url: `${DISCORD_BASE}/oauth2/token`,
@@ -27,14 +27,24 @@ const oauth_options = code => {
       Accept: 'application/json',
       Authorization: `Basic ${Buffer.from(`${props.clientId}:${props.clientSecret}`).toString('base64')}`
     },
-    form: {
-      grant_type: 'authorization_code',
-      code: code,
-      redirect_uri: REDIRECT_URI,
-      scope: SCOPE
-    }
+    form
   };
 };
+
+const oauth_options = code =>
+  oauth_base_options({
+    grant_type: 'authorization_code',
+    code: code,
+    redirect_uri: REDIRECT_URI,
+    scope: SCOPE
+  });
+
+const refresh_oauth_options = refresh_token =>
+  oauth_base_options({
+    grant_type: 'refresh_token',
+    refresh_token,
+    scope: SCOPE
+  });
 
 const discord_base = (callback, options) => {
   logger.info('Discord request: ' + options.url);
@@ -81,6 +91,7 @@ module.exports.me = (token, callback) => discord(token, '/users/@me', callback);
 */
 module.exports.guilds = (token, callback) => discord(token, '/users/@me/guilds', callback);
 module.exports.oauth = (code, callback) => discord_base(callback, oauth_options(code));
+module.exports.refreshOauth = (refreshToken, callback) => discord_base(callback, refresh_oauth_options(refreshToken));
 module.exports.discordUrl = state =>
   `${DISCORD_BASE}/oauth2/authorize?state=${encodeURIComponent(state)}&client_id=${props.clientId}&redirect_uri=${encodeURIComponent(
     REDIRECT_URI

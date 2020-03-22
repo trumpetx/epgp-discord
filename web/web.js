@@ -10,14 +10,11 @@ const NedbStore = require('connect-nedb-session')(session);
 const uuidv4 = require('uuid/v4');
 const { props } = require('../props');
 const app = (module.exports = express());
-const { discordUrl } = require('../discord');
 const logout = require('./logout');
 const epgp = require('./epgp');
 const { addguild, viewguild, deleteguild, uploadbackup, viewbot, editbot, viewloot, addAlias, viewexport } = require('./epgp_guild');
+const { loginFilter, sessionPopulateFilter, refreshTokenFilter } = require('./filters');
 const oauth = require('./oauth');
-const _ = require('lodash');
-const { serverStatus } = require('../bot/botserver');
-const { db, bots } = require('../db');
 const moment = require('moment');
 
 app.use(helmet());
@@ -73,37 +70,10 @@ app.use(
     store: new NedbStore({ filename: `${require('os').homedir()}/websessions.db` })
   })
 );
-function setState(req) {
-  req.session.state = req.session.state || uuidv4();
-  return req.session.state;
-}
-const loginFilter = (req, res, next) => {
-  if (!req.session || !req.session.expires_at) {
-    res.redirect(discordUrl(setState(req)));
-  } else {
-    next();
-  }
-};
+
+app.use(refreshTokenFilter);
 ['/epgp*', '/bot*'].forEach(path => app.use(path, loginFilter));
-app.use((req, res, next) => {
-  setState(req);
-  if (req.session && req.session.expires_at) {
-    res.locals.session = req.session;
-  } else {
-    res.locals.session = {};
-    res.locals.discordUrl = discordUrl(req.session.state);
-  }
-  res.locals.serverStatus = serverStatus();
-  db.count({}, (err, guildCount) => {
-    if (err) logger.error(err);
-    res.locals.guildCount = guildCount;
-    bots.count({}, (err, botCount) => {
-      if (err) logger.error(err);
-      res.locals.botCount = botCount;
-      next();
-    });
-  });
-});
+app.use(sessionPopulateFilter);
 
 // Static routes
 app.get('/', (_req, res) => res.render('index'));

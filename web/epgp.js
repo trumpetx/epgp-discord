@@ -24,12 +24,10 @@ module.exports = (req, res) => {
   if (req.session.guilds && req.session.guilds_timestamp + CACHE_TIME > new Date().getTime()) {
     renderGuilds(req, res);
   } else {
-    if (!req.session || !req.session.expires_at || req.session.expires_at < new Date()) {
-      logger.info('Forcing logout - token expiration');
-      req.session.destroy(err => {
-        if (err) throw new Error(err);
-        res.redirect('/');
-      });
+    const expiresAt = req.session && req.session.expires_at;
+    if (!expiresAt || req.session.expires_at < new Date()) {
+      logger.warn('Forcing logout - invalid or expired token');
+      res.redirect('/logout');
     } else {
       guilds(req.session.access_token, body => {
         req.session.guilds = body;
