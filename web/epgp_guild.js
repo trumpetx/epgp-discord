@@ -18,23 +18,33 @@ module.exports.addguild = (req, res) => {
   });
 };
 
+function generateSearch(guildid) {
+  if (/^\d+$/.test(guildid)) {
+    return { id: guildid };
+  } else {
+    return { name: { $regex: new RegExp('^' + guildid.split('-').join('.') + '$', 'i') } };
+  }
+}
+
 module.exports.viewguild = (req, res) => {
   const guildid = req.params.guildid;
-  if (!isUser(req)) throw GENERIC_ERROR;
-  db.findOne({ id: guildid }, (err, guild) => {
+  db.findOne(generateSearch(guildid), (err, guild) => {
     if (err) throw new Error(err);
+    if (!isUserOfGuild(guild)) throw GENERIC_ERROR;
     const index = req.query.index || (guild.backups || []).length - 1;
     const current = guild.backups && guild.backups[index];
     let customJson = {};
-    if(current) {
+    if (current) {
       customJson = _.keyBy(
         current.roster.map(entry => guildAliasMap(guild, entry)),
         'name'
       );
-      _.forEach(customJson, (v, k) => { v.name = undefined; });
+      _.forEach(customJson, (v, _k) => {
+        v.name = undefined;
+      });
       current.roster = current.roster.map(entry => guildMemberMap(guild, entry)).sort((a, b) => (a.displayName || '').localeCompare(b.displayName));
     }
-    res.render('guild', { isAdmin: isAdmin(req), guild, index, current, customJson: JSON.stringify(customJson, null, 2) });
+    res.render('guild', { isAdmin: isAdminOfGuild(guild), guild, index, current, customJson: JSON.stringify(customJson, null, 2) });
   });
 };
 
