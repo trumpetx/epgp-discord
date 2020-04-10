@@ -53,7 +53,7 @@ $(function() {
     return validateInput(
       $aliasModal,
       $advancedImport,
-      $advancedImport.prop('disabled') || !$advancedImport.val().match(BASIC_JSON_REGEX),
+      !$advancedImport.prop('disabled') && !$advancedImport.val().match(BASIC_JSON_REGEX),
       'Invalid JSON - Make sure you copy/pasted the correct values'
     );
   });
