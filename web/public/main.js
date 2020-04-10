@@ -1,5 +1,5 @@
 $(function() {
-  const BASIC_JSON_REGEX = /^\s*\{.*\}\s*$/;
+  const BASIC_JSON_REGEX = /^\s*\{.*(?!\})\s*$/gm;
   $('[data-toggle="tooltip"]').tooltip();
   $('#uploadModal').on('shown.bs.modal', function() {
     $('#uploadBackup').trigger('focus');
@@ -48,14 +48,17 @@ $(function() {
     return !condition;
   };
   $('#aliasForm').on('submit', _evt => {
-    const $advancedImport = $(this).find('#advancedImport');
+    const $advancedImport = $('#advancedImport');
     const $aliasModal = $('#aliasModal');
-    return validateInput(
-      $aliasModal,
-      $advancedImport,
-      !$advancedImport.prop('disabled') && !$advancedImport.val().match(BASIC_JSON_REGEX),
-      'Invalid JSON - Make sure you copy/pasted the correct values'
-    );
+    const disabledJson = $advancedImport.prop('disabled');
+    let isJson = false;
+    if (!disabledJson) {
+      try {
+        JSON.parse($advancedImport.val());
+        isJson = true;
+      } catch (ignored) {}
+    }
+    return validateInput($aliasModal, $advancedImport, !disabledJson && !isJson, 'Invalid JSON - Make sure you copy/pasted the correct values');
   });
   $('#uploadBackupForm').on('submit', _evt => {
     const $uploadBackup = $(this).find('#uploadBackup');
