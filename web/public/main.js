@@ -87,4 +87,61 @@ $(function() {
   };
   $('#advancedModeCheckbox').change(onAdvancedChange);
   onAdvancedChange();
+
+  new Chart(document.getElementById('epgpChart').getContext('2d'), {
+    type: 'line',
+    data: {
+      datasets: [
+        {
+          label: 'Effort Points',
+          yAxisID: 'EPGP',
+          borderColor: 'rgb(255,215,0)',
+          data: epData
+        },
+        {
+          label: 'Gear Points',
+          yAxisID: 'EPGP',
+          borderColor: 'rgb(148,0,211)',
+          data: gpData
+        },
+        {
+          label: 'Priority Ranking',
+          yAxisID: 'PR',
+          borderColor: 'rgb(0,204,102)',
+          data: prData
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        xAxes: [
+          {
+            type: 'time'
+          }
+        ],
+        yAxes: [
+          {
+            id: 'PR',
+            type: 'linear',
+            position: 'right',
+            ticks: {
+              max: Math.trunc(avgPr * 2.5),
+              min: 0
+            }
+          },
+          {
+            id: 'EPGP',
+            type: 'linear',
+            position: 'left',
+            ticks: {
+              max: Math.trunc(maxEpgp * 1.2),
+              min: 0
+            }
+          }
+        ]
+      }
+    }
+  });
 });

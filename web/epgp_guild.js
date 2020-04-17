@@ -79,27 +79,66 @@ function displayNote(guild, member) {
   return getAlias(guild, member).note || '';
 }
 
+function median(values) {
+  values.sort(function(a, b) {
+    return a - b;
+  });
+
+  var half = Math.floor(values.length / 2);
+
+  if (values.length % 2) return values[half];
+  else return (values[half - 1] + values[half]) / 2.0;
+}
+
 module.exports.viewloot = (req, res) => {
   const guildid = req.params.guildid;
   const member = req.params.member;
   if (!isUser(req)) throw GENERIC_ERROR;
   db.findOne({ id: guildid }, (err, guild) => {
     if (err) throw new Error(err);
-    const index = req.query.index || (guild.backups || []).length - 1;
-    const current = guild.backups && guild.backups[index];
-    const loot = current
-      ? current.loot
-          .filter(arr => member === arr[1])
-          .map(arr => {
-            return {
-              date: new Date(_.toInteger(arr[0]) * 1000),
-              item: arr[2].match(/^item:(\d+):/)[1],
-              gp: arr[3]
-            };
+    const alias = (guild.aliases[member] || {}).alias;
+    const gpData = [];
+    const epData = [];
+    const prData = [];
+    let prs = [];
+    let maxEpgp = 100;
+    const loot = [
+      ...new Set(
+        (guild.backups || [])
+          .map(b => {
+            const dt = _.toInteger(b.timestamp) * 1000;
+            b.roster
+              .filter(arr => arr[0] === member)
+              .forEach(arr => {
+                maxEpgp = Math.max(maxEpgp, arr[1], arr[2]);
+                const pr = _.toInteger((arr[1] / arr[2]) * 100) / 100;
+                prs.push(pr);
+                epData.push({ t: dt, y: arr[1] });
+                gpData.push({ t: dt, y: arr[2] });
+                prData.push({ t: dt, y: pr });
+              });
+            return b.loot;
           })
-          .sort((o1, o2) => o1.date - o2.date)
-      : [];
+          .reduce((arr, v) => arr.concat(v), [])
+          .filter(arr => member === arr[1] || arr[1].startsWith(alias))
+          .map(arr => arr[0] + '~~~' + arr[2] + '~~~' + arr[3])
+      )
+    ]
+      .map(str => str.split('~~~'))
+      .map(arr => {
+        return {
+          date: new Date(_.toInteger(arr[0]) * 1000),
+          item: arr[1].match(/^item:(\d+):/)[1],
+          gp: _.toInteger(arr[2])
+        };
+      })
+      .sort((o1, o2) => o1.date - o2.date);
     res.render('loot', {
+      avgPr: median(prs),
+      maxEpgp,
+      prData,
+      gpData,
+      epData,
       guild,
       loot,
       member,
