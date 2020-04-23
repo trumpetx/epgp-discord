@@ -41,6 +41,11 @@ const handleMessage = (guild, bot, message, args, command) => {
   const roster = current && current.roster;
   let chunkHeader = '';
   let chunkFooter = '';
+  let replyOrMsg = reply;
+  if (memberAdmin && command === 'list' && !bot.disabled) {
+    command = '';
+    replyOrMsg = msg;
+  }
   if (!(memberAdmin && command === 'config') && bot.disabled) {
     // Silently return unless an admin is processing configuration
     return;
@@ -86,7 +91,7 @@ const handleMessage = (guild, bot, message, args, command) => {
           const name = entry[0].substring(0, entry[0].lastIndexOf('-')).padEnd(25, ' ');
           const ep = ('' + entry[1]).padEnd(12, ' ');
           const gp = ('' + entry[2]).padEnd(12, ' ');
-          reply.push(`${name}${ep}${gp}${calcPr(entry)}`);
+          replyOrMsg.push(`${name}${ep}${gp}${calcPr(entry)}`);
         });
     }
   }
