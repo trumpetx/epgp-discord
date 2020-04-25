@@ -20,9 +20,8 @@ function renderGuilds(req, res) {
   });
 }
 
-
 function logout(req, res) {
-      logger.warn('Forcing logout - invalid or expired token');
+  logger.warn('Forcing logout (epgp) - invalid or expired token');
   req.session.destroy(err => {
     if (err) throw new Error(err);
     res.redirect('/');
@@ -38,7 +37,7 @@ module.exports = (req, res) => {
       logout(res);
     } else {
       guilds(req.session.access_token, body => {
-        if(!body){
+        if (!body) {
           logout(req, res);
           return;
         }

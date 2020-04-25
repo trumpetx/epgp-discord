@@ -56,7 +56,7 @@ const discord_base = (callback, options) => {
     } else {
       try {
         callback(JSON.parse(body));
-        logger.debug('callback called');
+        logger.debug('Discord response body parsed: ' + body);
         return;
       } catch (e) {
         logger.error(e.toString());

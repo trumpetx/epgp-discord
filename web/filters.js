@@ -39,7 +39,7 @@ module.exports.sessionPopulateFilter = (req, res, next) => {
 };
 
 function logout(req, res) {
-      logger.warn('Forcing logout - invalid or expired token');
+  logger.warn('Forcing logout (refreshTokenFilter) - invalid or expired token');
   req.session.destroy(err => {
     if (err) throw new Error(err);
     res.redirect('/');
@@ -53,7 +53,7 @@ module.exports.refreshTokenFilter = (req, res, next) => {
   } else if (req.session.refresh_token) {
     logger.debug('Refreshing token: ' + req.session.refresh_token);
     refreshOauth(req.session.refresh_token, body => {
-      if(!body) {
+      if (!body) {
         logout(req, res);
         return;
       }
@@ -63,6 +63,6 @@ module.exports.refreshTokenFilter = (req, res, next) => {
       next();
     });
   } else {
-    logout(res);
+    logout(req, res);
   }
 };
