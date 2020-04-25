@@ -51,17 +51,18 @@ const discord_base = (callback, options) => {
   request(options, (error, response, body) => {
     if (error) {
       logger.error(error);
-      throw new Error(error);
     } else if (response.statusCode != 200) {
       logger.error('Bad Status on response: ' + response.statusCode + '\n\n' + body);
     } else {
       try {
         callback(JSON.parse(body));
+        logger.debug('callback called');
+        return;
       } catch (e) {
         logger.error(e.toString());
-        throw e;
       }
     }
+    callback(undefined);
   });
 };
 

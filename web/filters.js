@@ -38,6 +38,14 @@ module.exports.sessionPopulateFilter = (req, res, next) => {
   });
 };
 
+function logout(req, res) {
+      logger.warn('Forcing logout - invalid or expired token');
+  req.session.destroy(err => {
+    if (err) throw new Error(err);
+    res.redirect('/');
+  });
+}
+
 module.exports.refreshTokenFilter = (req, res, next) => {
   const tokenExpired = req.session && req.session.expires_at && req.session.expires_at < new Date();
   if (!tokenExpired) {
@@ -45,13 +53,16 @@ module.exports.refreshTokenFilter = (req, res, next) => {
   } else if (req.session.refresh_token) {
     logger.debug('Refreshing token: ' + req.session.refresh_token);
     refreshOauth(req.session.refresh_token, body => {
+      if(!body) {
+        logout(req, res);
+        return;
+      }
       req.session.refresh_token = body.refresh_token;
       req.session.access_token = body.access_token;
       req.session.expires_at = new Date(_.toInteger(body.expires_in) * 1000 + new Date().getTime());
       next();
     });
   } else {
-    logger.warn('No refresh token available, logging out');
-    res.redirect('/logout');
+    logout(res);
   }
 };

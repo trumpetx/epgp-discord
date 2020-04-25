@@ -20,16 +20,28 @@ function renderGuilds(req, res) {
   });
 }
 
+
+function logout(req, res) {
+      logger.warn('Forcing logout - invalid or expired token');
+  req.session.destroy(err => {
+    if (err) throw new Error(err);
+    res.redirect('/');
+  });
+}
+
 module.exports = (req, res) => {
   if (req.session.guilds && req.session.guilds_timestamp + CACHE_TIME > new Date().getTime()) {
     renderGuilds(req, res);
   } else {
     const expiresAt = req.session && req.session.expires_at;
     if (!expiresAt || req.session.expires_at < new Date()) {
-      logger.warn('Forcing logout - invalid or expired token');
-      res.redirect('/logout');
+      logout(res);
     } else {
       guilds(req.session.access_token, body => {
+        if(!body){
+          logout(req, res);
+          return;
+        }
         req.session.guilds = body;
         req.session.guilds_timestamp = new Date().getTime();
         _.forEach(req.session.guilds, guild => {
