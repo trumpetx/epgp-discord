@@ -55,19 +55,39 @@
     {{/unless}}
   {{/if}}
   {{#if isAdmin}}
-    <div style="float:right;">
+    <div style="width: 100%;">
       {{#if bot}}
         {{#if bot.disabled}}
           <form method="POST" action="/bot/{{guild.id}}">
-            <input type="hidden" name="disableBot" value="false" />
-            <button type="submit" class="btn btn-success">Enable Bot</button>
+            <div class="form-group">
+              <input type="hidden" name="disableBot" value="false" />
+              <button type="submit" class="btn btn-success">Enable Bot</button>
+            </div>
           </form>
         {{else}}
           <form method="POST" action="/bot/{{guild.id}}">
-            <input type="hidden" name="disableBot" value="true" />
-            <button type="submit" class="btn btn-warning">Disable Bot</button>
+            <div class="form-group">
+              <input type="hidden" name="disableBot" value="true" />
+              <button type="submit" class="btn btn-warning">Disable Bot</button>
+            </div>
           </form>      
-        {{/if}}    
+        {{/if}}
+        <br/><br/>
+        <form method="POST" action="/bot/{{guild.id}}">
+          <div class="form-group">
+            <label for="webhook">Webhook URL</label>
+            <input
+              type="url"
+              value="{{bot.webhook}}"
+              class="form-control"
+              id="webhook"
+              name="webhook"
+              aria-describedby="webhookHelp"
+              placeholder="https://discordapp.com/api/webhooks/00000{channel-id-numbers}00000/{long-token-here}">
+            <small id="webhookHelp" class="form-text text-muted">Get this URL by right-clicking the channel -> Edit Channel -> Webhooks -> Create Webhook</small>
+          </div>
+          <button type="submit" class="btn btn-primary">Add/Update Webhook</button>
+        </form> 
       {{else}}
         <div><a class="btn btn-secondary" target="_new" href="{{botUrl}}" role="button">Add Discord Bot</a></div>
       {{/if}}

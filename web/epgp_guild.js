@@ -1,6 +1,10 @@
 const { db, bots } = require('../db');
 const { botUrl } = require('../discord');
+const request = require('request');
 const { logger } = require('../logger');
+const { chunk } = require('../bot/discord-util');
+const { props } = require('../props');
+const moment = require('moment');
 const _ = require('lodash');
 const GENERIC_ERROR = new Error('Invalid Guild ID');
 const getGuild = req => req.session.guilds.find(g => g.id === req.params.guildid);
@@ -178,8 +182,25 @@ module.exports.viewbot = (req, res) => {
 module.exports.editbot = (req, res) => {
   const guildid = req.params.guildid;
   if (!isAdmin(req)) throw GENERIC_ERROR;
-  const disableBot = req.body.disableBot === 'true';
-  bots.update({ id: guildid }, { $set: { disabled: disableBot } }, {}, (err, _updatedCount) => {
+  const setValues = {};
+  if (req.body.disableBot) {
+    setValues.disabled = req.body.disableBot === 'true';
+  }
+  if (req.body.disableBot) {
+    setValues.disabled = req.body.disableBot === 'true';
+  }
+  if (req.body.webhook) {
+    const webhook = req.body.webhook.trim();
+    if (webhook === '' || webhook.startsWith('https://discordapp.com/api/webhooks')) {
+      setValues.webhook = webhook;
+    } else {
+      logger.error('Bad webhook URL: ' + webhook);
+      res.redirect('/bot/' + guildid);
+      return;
+    }
+  }
+  logger.debug(JSON.stringify(setValues));
+  bots.update({ id: guildid }, { $set: setValues }, {}, (err, _updatedCount) => {
     if (err) logger.error(err);
     res.redirect('/bot/' + guildid);
   });
@@ -251,7 +272,56 @@ module.exports.uploadbackup = (req, res) => {
     uploadBackup.timestampDate = new Date(uploadBackup.timestamp * 1000);
     db.update({ id: guildid }, { $push: { backups: uploadBackup } }, {}, err => {
       if (err) throw new Error(err);
-      res.redirect('/epgp/' + guildid);
+      logger.debug('Backup uploaded');
+      bots.findOne({ id: guildid }, (err, bot) => {
+        if (err) {
+          logger.error(err);
+          return;
+        }
+        logger.debug('Bot found: ' + JSON.stringify(bot));
+        if (bot.webhook && bot.webhook.startsWith('http')) {
+          // TODO: remove dupe code from here and message.js
+          const chunkHeader = moment(uploadBackup.timestampDate).format('YYYY-MM-DD HH:mm') + '```\nName                     EP          GP          PR\n';
+          const chunkFooter = '\n```' + `See full details: ${props.hostname}${props.extPortString}/epgp/${guildid}`;
+          const msg = [];
+          const calcPr = entry => (_.toNumber(entry[1]) / _.toNumber(entry[2])).toFixed(2);
+          uploadBackup.roster
+            .sort((e1, e2) => calcPr(e2) - calcPr(e1))
+            .forEach(entry => {
+              const name = entry[0].substring(0, entry[0].lastIndexOf('-')).padEnd(25, ' ');
+              const ep = ('' + entry[1]).padEnd(12, ' ');
+              const gp = ('' + entry[2]).padEnd(12, ' ');
+              msg.push(`${name}${ep}${gp}${calcPr(entry)}`);
+            });
+          chunk(
+            msg,
+            1900,
+            content => {
+              request(
+                {
+                  method: 'POST',
+                  url: bot.webhook,
+                  headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json'
+                  },
+                  body: JSON.stringify({ content })
+                },
+                (error, response, body) => {
+                  if (error) {
+                    logger.error(error);
+                  } else if (response.statusCode !== 200 && response.statusCode !== 204) {
+                    logger.error('Bad Status on webhook response: ' + response.statusCode + '\n\n' + body);
+                  }
+                }
+              );
+            },
+            chunkHeader,
+            chunkFooter
+          );
+        }
+        res.redirect('/epgp/' + guildid);
+      });
     });
   }
 };

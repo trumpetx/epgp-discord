@@ -4,7 +4,7 @@ const { bots } = require('../db');
 const moment = require('moment');
 
 const upsert = guid => {
-  bots.update({ id: guid }, { id: guid }, { upsert: true }, (err, _numReplaced, _newDoc) => {
+  bots.update({ id: guid }, { $set: { id: guid } }, { upsert: true }, (err, _numReplaced, _newDoc) => {
     if (err) {
       logger.error(err);
     } else {

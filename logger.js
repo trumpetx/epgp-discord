@@ -9,7 +9,7 @@ const log_format = combine(
 );
 
 const logger = winston.createLogger({
-  level: 'warn',
+  level: process.env.NODE_ENV === 'production' ? 'warn' : 'debug',
   format: log_format,
   transports: [
     new winston.transports.DailyRotateFile({
