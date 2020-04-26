@@ -57,37 +57,52 @@
   {{#if isAdmin}}
     <div style="width: 100%;">
       {{#if bot}}
-        {{#if bot.disabled}}
-          <form method="POST" action="/bot/{{guild.id}}">
-            <div class="form-group">
-              <input type="hidden" name="disableBot" value="false" />
-              <button type="submit" class="btn btn-success">Enable Bot</button>
+        <div class="card">
+          <div class="card-body">
+            <h4 class="card-title">Discord Bot Config</h4>
+            <br/>
+            <div>
+              {{#if bot.disabled}}
+                <form method="POST" action="/bot/{{guild.id}}">
+                  <div class="form-group">
+                    <input type="hidden" name="disableBot" value="false" />
+                    <button type="submit" class="btn btn-success">Enable Bot</button>
+                  </div>
+                </form>
+              {{else}}
+                <form method="POST" action="/bot/{{guild.id}}">
+                  <div class="form-group">
+                    <input type="hidden" name="disableBot" value="true" />
+                    <button type="submit" class="btn btn-warning">Disable Bot</button>
+                  </div>
+                </form>      
+              {{/if}}
             </div>
-          </form>
-        {{else}}
-          <form method="POST" action="/bot/{{guild.id}}">
-            <div class="form-group">
-              <input type="hidden" name="disableBot" value="true" />
-              <button type="submit" class="btn btn-warning">Disable Bot</button>
-            </div>
-          </form>      
-        {{/if}}
-        <br/><br/>
-        <form method="POST" action="/bot/{{guild.id}}">
-          <div class="form-group">
-            <label for="webhook">Webhook URL</label>
-            <input
-              type="url"
-              value="{{bot.webhook}}"
-              class="form-control"
-              id="webhook"
-              name="webhook"
-              aria-describedby="webhookHelp"
-              placeholder="https://discordapp.com/api/webhooks/00000{channel-id-numbers}00000/{long-token-here}">
-            <small id="webhookHelp" class="form-text text-muted">Get this URL by right-clicking the channel -> Edit Channel -> Webhooks -> Create Webhook</small>
           </div>
-          <button type="submit" class="btn btn-primary">Add/Update Webhook</button>
-        </form> 
+        </div>
+        <br/><br/>
+        <div class="card">
+          <div class="card-body">
+            <h4 class="card-title">Webhook URL</h4>
+            <form method="POST" action="/bot/{{guild.id}}">
+              <div class="form-group">
+                <input
+                  type="url"
+                  value="{{bot.webhook}}"
+                  class="form-control"
+                  id="webhook"
+                  name="webhook"
+                  aria-describedby="webhookHelp"
+                  placeholder="https://discordapp.com/api/webhooks/00000{channel-id-numbers}00000/{long-token-here}">
+                <small id="webhookHelp" class="form-text text-muted">
+                  Get this URL by right-clicking the channel -> Edit Channel -> Webhooks -> Create Webhook<br/><br/>
+                  Adding a Webhook URL will post EPGP values to the Webhook channel every time you upload a new backup.
+                </small>
+              </div>
+              <button type="submit" class="btn btn-primary">Add/Update Webhook</button>
+            </form>
+          </div>
+        </div>
       {{else}}
         <div><a class="btn btn-secondary" target="_new" href="{{botUrl}}" role="button">Add Discord Bot</a></div>
       {{/if}}
