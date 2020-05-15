@@ -48,7 +48,7 @@ module.exports.viewguild = (req, res) => {
       });
       current.roster = current.roster.map(entry => guildMemberMap(guild, entry)).sort((a, b) => (a.displayName || '').localeCompare(b.displayName));
     }
-    res.render('guild', { isAdmin: isAdminOfGuild(guild), guild, index, current, customJson: JSON.stringify(customJson, null, 2) });
+    res.render('guild', { isAdmin: isAdmin(req), guild, index, current, customJson: JSON.stringify(customJson, null, 2) });
   });
 };
 
