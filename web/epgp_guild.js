@@ -100,7 +100,7 @@ module.exports.viewloot = (req, res) => {
   if (!isUser(req)) throw GENERIC_ERROR;
   db.findOne({ id: guildid }, (err, guild) => {
     if (err) throw new Error(err);
-    const alias = (guild.aliases[member] || {}).alias;
+    const alias = ((guild.aliases || {})[member] || {}).alias;
     const gpData = [];
     const epData = [];
     const prData = [];
