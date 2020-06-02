@@ -74,11 +74,13 @@ const handleMessage = (guild, bot, message, args, command) => {
       reply.push(`OK! ${key}=${value}`);
     }
   } else if (args.length === 0 && !_.isEmpty(command)) {
-    const entry = roster && roster.find(entry => startsWithIgnoreCase(entry[0], command));
+    let entry = roster && roster.find(entry => startsWithIgnoreCase(entry[0], command));
     if (!entry) {
       reply.push('No match :/');
     } else {
-      //bots.update({ id: guild.id }, { $inc: 'requestCount' }, {}, (err, _updatedCount) => err && logger.error(err));
+      if (isCEPGP(entry)) {
+        entry = [entry[0], entry[3], entry[4]];
+      }
       reply.push(entry[0] + '\nEP: ' + entry[1] + '\nGP: ' + entry[2] + '\nPR: ' + _.toNumber(entry[1]) / _.toNumber(entry[2]));
       deleteMsg(message);
     }
