@@ -38,6 +38,7 @@ module.exports.viewguild = (req, res) => {
     const index = req.query.index || (guild.backups || []).length - 1;
     const current = guild.backups && guild.backups[index];
     let customJson = {};
+    const canCustomize = current && current.roster && current.roster.length > 0 && !isCEPGP(current.roster[0]);
     if (current) {
       customJson = _.keyBy(
         current.roster.map(entry => guildAliasMap(guild, entry)),
@@ -48,11 +49,19 @@ module.exports.viewguild = (req, res) => {
       });
       current.roster = current.roster.map(entry => guildMemberMap(guild, entry)).sort((a, b) => (a.displayName || '').localeCompare(b.displayName));
     }
-    res.render('guild', { isAdmin: isAdmin(req), guild, index, current, customJson: JSON.stringify(customJson, null, 2) });
+    res.render('guild', { canCustomize, isAdmin: isAdmin(req), guild, index, current, customJson: JSON.stringify(customJson, null, 2) });
   });
 };
 
 function guildAliasMap(guild, member) {
+  if (isCEPGP(member)) {
+    return {
+      name: member[0],
+      displayName: member[0],
+      class: member[1],
+      note: member[2]
+    };
+  }
   return {
     name: member[0],
     displayName: displayName(guild, member[0]),
@@ -61,7 +70,18 @@ function guildAliasMap(guild, member) {
   };
 }
 
+function isCEPGP(memberArray) {
+  return memberArray.length === 6;
+}
+
 function guildMemberMap(guild, member) {
+  if (isCEPGP(member)) {
+    return _.merge(guildAliasMap(guild, member), {
+      ep: member[3],
+      gp: member[4],
+      pr: member[5]
+    });
+  }
   return _.merge(guildAliasMap(guild, member), {
     ep: member[1],
     gp: member[2],
@@ -74,7 +94,15 @@ function getAlias(guild, member) {
 }
 
 function displayName(guild, member) {
-  return getAlias(guild, member).alias || member.substring(0, member.lastIndexOf('-'));
+  const alias = getAlias(guild, member).alias;
+  if (alias) {
+    return alias;
+  }
+  const idx = member.lastIndexOf('-');
+  if (idx !== -1) {
+    return member.substring(0, idx);
+  }
+  return member;
 }
 function displayClass(guild, member) {
   return getAlias(guild, member).class || '';
@@ -106,6 +134,7 @@ module.exports.viewloot = (req, res) => {
     const prData = [];
     let prs = [];
     let maxEpgp = 100;
+    let noLootList = false;
     const loot = [
       ...new Set(
         (guild.backups || [])
@@ -113,6 +142,14 @@ module.exports.viewloot = (req, res) => {
             const dt = _.toInteger(b.timestamp) * 1000;
             b.roster
               .filter(arr => arr[0] === member)
+              .map(arr => {
+                if (isCEPGP(arr)) {
+                  noLootList = true;
+                  return [arr[0], arr[3], arr[4]];
+                } else {
+                  return arr;
+                }
+              })
               .forEach(arr => {
                 maxEpgp = Math.max(maxEpgp, arr[1], arr[2]);
                 const pr = _.toInteger((arr[1] / arr[2]) * 100) / 100;
@@ -121,10 +158,10 @@ module.exports.viewloot = (req, res) => {
                 gpData.push({ t: dt, y: arr[2] });
                 prData.push({ t: dt, y: pr });
               });
-            return b.loot;
+            return b.loot || [];
           })
           .reduce((arr, v) => arr.concat(v), [])
-          .filter(arr => member === arr[1] || arr[1].startsWith(alias))
+          .filter(arr => member === arr[1] || (alias !== undefined && arr[1].startsWith(alias)))
           .map(arr => arr[0] + '~~~' + arr[2] + '~~~' + arr[3])
       )
     ]
@@ -145,6 +182,7 @@ module.exports.viewloot = (req, res) => {
       epData,
       guild,
       loot,
+      noLootList,
       member,
       displayName: displayName(guild, member)
     });
@@ -257,7 +295,7 @@ module.exports.deleteguild = (req, res) => {
  
  */
 function validateSchema(json) {
-  return json.guild && json.region && _.isArray(json.roster) && _.isArray(json.loot);
+  return _.isArray(json.roster) && ((json.guild && json.region && _.isArray(json.loot)) || (json.roster.length > 0 && isCEPGP(json.roster[0])));
 }
 
 module.exports.uploadbackup = (req, res) => {
@@ -279,7 +317,7 @@ module.exports.uploadbackup = (req, res) => {
           return;
         }
         logger.debug('Bot found: ' + JSON.stringify(bot));
-        if (bot.webhook && bot.webhook.startsWith('http')) {
+        if (bot && bot.webhook && bot.webhook.startsWith('http')) {
           // TODO: remove dupe code from here and message.js
           const chunkHeader = moment(uploadBackup.timestampDate).format('YYYY-MM-DD HH:mm') + '```\nName                     EP          GP          PR\n';
           const chunkFooter = '\n```' + `See full details: ${props.hostname}${props.extPortString}/epgp/${guildid}`;
