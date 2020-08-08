@@ -322,7 +322,7 @@ module.exports.uploadbackup = (req, res) => {
         if (bot && bot.webhook && bot.webhook.startsWith('http')) {
           // TODO: remove dupe code from here and message.js
           const chunkHeader = moment(uploadBackup.timestampDate).format('YYYY-MM-DD HH:mm') + '```\nName                     EP          GP          PR\n';
-          const chunkFooter = '\n```' + `See full details: ${props.hostname}${props.extPortString}/epgp/${guildid}`;
+          const chunkFooter = '```'; // + `See full details: ${props.hostname}${props.extPortString}/epgp/${guildid}`;
           const msg = [];
           const calcPr = entry => (_.toNumber(entry[1]) / _.toNumber(entry[2])).toFixed(2);
           uploadBackup.roster
