@@ -1,38 +1,65 @@
-<div style="float:right;">
-  {{#if isAdmin}}
-    <form method="POST" action="/epgp/{{guild.id}}?_method=DELETE">
-      <button type="submit" class="btn btn-danger confirm">
-        <i class="fa fa-trash" aria-hidden="true"></i>&nbsp;&nbsp;Delete Guild
-      </button>
-    </form><br/>
-    <button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#uploadModal">
-      <i class="fa fa-cloud-upload" aria-hidden="true"></i>&nbsp;&nbsp;Upload Backup
-    </button><br/><br/>
-    {{#if canCustomize}}
-      <button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#aliasModal">
-        <i class="fa fa-pencil" aria-hidden="true"></i>&nbsp;&nbsp;Customize Guild
-      </button><br/><br/>
-    {{/if}}
-  {{/if}}
-  <div><a class="btn btn-secondary" href="/bot/{{guild.id}}" role="button">
-    <i class="fa fa-cog" aria-hidden="true"></i>&nbsp;&nbsp;Configuration / Bot
-  </a></div>
+<div class="container">
+  <div class="row">
+    <div class="col-sm">
+      <h4>{{guild.name}}</h4>
+      {{#if current}}
+        {{#if current.guild}}
+          <table class="table table-sm table-bordered table-striped table-dark" style="width: 300px;">
+            <!--tr><td>Guild:</td><td>{{current.guild}}</td></tr-->
+            <!--tr><td>Region:</td><td>{{current.region}}</td></tr-->
+            <tr><td>Base GP:</td><td>{{current.base_gp}}</td></tr>
+            <tr><td>Decay:</td><td>{{current.decay_p}}%</td></tr>
+            <tr><td>Min EP:</td><td>{{current.min_ep}}</td></tr>
+            <tr><td>Extras:</td><td>{{current.extras_p}}</td></tr>
+          </table>
+        {{else}}
+          <br/><br/><br/><br/><br/><br/><br/><br/><br/>
+        {{/if}}
+      {{/if}}
+    </div>
+    <div class="col-sm">
+      {{#if latestLoot}}
+          <h4>Latest Loot:</h4>
+          <table class="table table-sm table-bordered table-striped table-dark" style="width: 300px;">
+            <thead><tr><th>Member</th><th>Loot</th></tr></thead>
+              {{#each latestLoot}}
+                <tr>
+                  <td>
+                    <a href="/epgp/{{../guild.id}}/loot/{{name}}" class="{{class}}">{{displayName}}</a>
+                  </td>
+                  <td>
+                    {{{wowhead item ../guild.wowheadDomain}}}
+                  </td>
+                </tr>
+              {{/each}}
+          </table>
+      {{/if}}
+    </div>
+    <div class="col-sm">
+      <h4>&nbsp;</h4>
+      {{#if isAdmin}}
+        <form method="POST" action="/epgp/{{guild.id}}?_method=DELETE">
+          <button type="submit" class="btn btn-danger confirm">
+            <i class="fa fa-trash" aria-hidden="true"></i>&nbsp;&nbsp;Delete Guild
+          </button>
+        </form><br/>
+        <button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#uploadModal">
+          <i class="fa fa-cloud-upload" aria-hidden="true"></i>&nbsp;&nbsp;Upload Backup
+        </button><br/><br/>
+        {{#if canCustomize}}
+          <button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#aliasModal">
+            <i class="fa fa-pencil" aria-hidden="true"></i>&nbsp;&nbsp;Customize Guild
+          </button><br/><br/>
+        {{/if}}
+      {{/if}}
+      <div>
+        <a class="btn btn-secondary" href="/bot/{{guild.id}}" role="button"><i class="fa fa-cog" aria-hidden="true"></i>&nbsp;&nbsp;Configuration / Bot</a>
+      </div>
+    </div>
+  </div>
 </div>
-<h2>{{guild.name}}</h2>
-
+<br/>
 {{#if current}}
-  {{#if current.guild}}
-    <table class="table table-sm table-bordered table-striped table-dark" style="width: 300px;">
-      <tr><td>Guild:</td><td>{{current.guild}}</td></tr>
-      <!--tr><td>Region:</td><td>{{current.region}}</td></tr-->
-      <tr><td>Base GP:</td><td>{{current.base_gp}}</td></tr>
-      <tr><td>Decay:</td><td>{{current.decay_p}}%</td></tr>
-      <tr><td>Min EP:</td><td>{{current.min_ep}}</td></tr>
-      <tr><td>Extras:</td><td>{{current.extras_p}}</td></tr>
-    </table>
-  {{else}}
-    <br/><br/><br/><br/><br/><br/><br/><br/><br/>
-  {{/if}}
 <table id="currentRoster" class="table table-bordered table-striped table-dark">
   <thead>
     <tr><td>Member</td><td>Class</td><td>EP</td><td>GP</td><td>PR</td></tr>

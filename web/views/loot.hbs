@@ -25,7 +25,7 @@
       </thead>
       {{#each loot}}
         <tr>
-          <td><a href="https://{{../wowheadDomain}}.wowhead.com/item={{item}}" target="_new" data-wowhead="item={{item}}{{#if (eqDefault ../wowheadDomain 'classic' 'classic')}}&domain={{../wowheadDomain}}{{/if}}">{{item}}</a></td>
+          <td>{{{wowhead item ../wowheadDomain}}}</td>
           <td>{{gp}}</td>
           <td class="narrow" data-sort="{{timestamp date}}">{{dtFormat date 'YYYY-MM-DD'}}</td>
         </tr>

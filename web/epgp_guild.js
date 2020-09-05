@@ -30,6 +30,14 @@ function generateSearch(guildid) {
   }
 }
 
+function itemParse(item) {
+  const epgpClassicParse = item.match(/^item:(\d+):/);
+  if (epgpClassicParse && epgpClassicParse.length > 1) {
+    return epgpClassicParse[1];
+  }
+  return item;
+}
+
 module.exports.viewguild = (req, res) => {
   const guildid = req.params.guildid;
   db.findOne(generateSearch(guildid), (err, guild) => {
@@ -38,6 +46,7 @@ module.exports.viewguild = (req, res) => {
     const index = req.query.index || (guild.backups || []).length - 1;
     const current = guild.backups && guild.backups[index];
     let customJson = {};
+    let latestLoot;
     const canCustomize = current && current.roster && current.roster.length > 0 && !isCEPGP(current.roster[0]);
     if (current) {
       customJson = _.keyBy(
@@ -48,8 +57,18 @@ module.exports.viewguild = (req, res) => {
         v.name = undefined;
       });
       current.roster = current.roster.map(entry => guildMemberMap(guild, entry)).sort((a, b) => (a.displayName || '').localeCompare(b.displayName));
+      const latestLootCount = Math.max(0, _.isUndefined(guild.latestLootCount) ? 10 : guild.latestLootCount);
+      if (current.loot && current.loot.length > 0 && latestLootCount > 0) {
+        latestLoot = current.loot
+          .sort((o1, o2) => o2[0] - o1[0])
+          .filter(o => o[1] !== 'Guild Bank')
+          .slice(0, latestLootCount)
+          .map(itemRow => {
+            return { name: itemRow[1], displayName: displayName(guild, itemRow[1]), class: displayClass(guild, itemRow[1]), item: itemParse(itemRow[2]) };
+          });
+      }
     }
-    res.render('guild', { canCustomize, isAdmin: isAdmin(req), guild, index, current, customJson: JSON.stringify(customJson, null, 2) });
+    res.render('guild', { latestLoot, canCustomize, isAdmin: isAdmin(req), guild, index, current, customJson: JSON.stringify(customJson, null, 2) });
   });
 };
 
@@ -170,15 +189,9 @@ module.exports.viewloot = (req, res) => {
     ]
       .map(str => str.split('~~~'))
       .map(arr => {
-        // DKPReloaded is a plain number here
-        let item = arr[1];
-        const epgpClassicParse = item.match(/^item:(\d+):/);
-        if (epgpClassicParse && epgpClassicParse.length > 1) {
-          item = epgpClassicParse[1];
-        }
         return {
           date: new Date(_.toInteger(arr[0]) * 1000),
-          item,
+          item: itemParse(arr[1]),
           gp: _.toInteger(arr[2])
         };
       })
@@ -250,6 +263,9 @@ module.exports.config = (req, res) => {
   }
   if (['classic', 'www'].indexOf(req.body.wowheadDomain) != -1) {
     setGuildValues.wowheadDomain = req.body.wowheadDomain;
+  }
+  if (req.body.latestLootCount) {
+    setGuildValues.latestLootCount = _.toInteger(req.body.latestLootCount);
   }
   logger.debug(JSON.stringify(setValues));
   bots.update({ id: guildid }, { $set: setValues }, {}, (err, _updatedCount) => {

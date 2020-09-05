@@ -8,43 +8,40 @@
   {{#if isAdmin}}
     <div class="card">
       <div class="card-body">
-        <h4 class="card-title">Webhook URL</h4>
-        <form method="POST" action="/config/{{guild.id}}">
-          <div class="form-group">
-            <input
-              type="url"
-              value="{{bot.webhook}}"
-              class="form-control"
-              id="webhook"
-              name="webhook"
-              aria-describedby="webhookHelp"
-              placeholder="https://discordapp.com/api/webhooks/00000{channel-id-numbers}00000/{long-token-here}">
-            <small id="webhookHelp" class="form-text text-muted">
-              Get this URL by right-clicking the channel -> Edit Channel -> Webhooks -> Create Webhook<br/><br/>
-              Adding a Webhook URL will post EPGP values to the Webhook channel every time you upload a new backup.<br/><br/>
-              The Discord Bot is <b>not</b> required when using the webhook.
-            </small>
-          </div>
-          <button type="submit" class="btn btn-primary">Add/Update Webhook</button>
-        </form>
-      </div>
-    </div>
-    <br/>
-    <div class="card">
-      <div class="card-body">
-        <h4 class="card-title">Wowhead Item Links</h4>
+        <h4 class="card-title">General Configuration</h4>
         <br/>
         <div>
           <form method="POST" action="/config/{{guild.id}}">
             <div class="form-group">
-              {{#if (eqDefault guild.wowheadDomain 'classic' 'classic')}}
-                <input type="hidden" name="wowheadDomain" value="www" />
-                <button type="submit" class="btn btn-primary">Use Retail Links</button>
-              {{else}}
-                <input type="hidden" name="wowheadDomain" value="classic" />
-                <button type="submit" class="btn btn-primary">Use Classic Links</button>
-              {{/if}}
+              <label for="webhook">Webhook URL</label>
+              <input
+                type="url"
+                value="{{bot.webhook}}"
+                class="form-control"
+                id="webhook"
+                name="webhook"
+                aria-describedby="webhookHelp"
+                placeholder="https://discordapp.com/api/webhooks/00000{channel-id-numbers}00000/{long-token-here}">
+              <small id="webhookHelp" class="form-text text-muted">
+                Get this URL by right-clicking the channel -> Edit Channel -> Webhooks -> Create Webhook<br/>
+                Adding a Webhook URL will post EPGP values to the Webhook channel every time you upload a new backup.<br/>
+                The Discord Bot is <b>not</b> required when using the webhook.
+              </small>
             </div>
+            <div class="form-group">
+              <label for="wowheadDomain">Wowhead Item Links</label>
+              <select class="form-control" name="wowheadDomain" id="wowheadDomain" aria-describedby="wowheadDomainHelp">
+                <option {{#if (eqDefault guild.wowheadDomain 'classic' 'classic')}}SELECTED{{/if}} value="classic">Classic</option>
+                <option {{#if (eqDefault guild.wowheadDomain 'www' 'classic')}}SELECTED{{/if}} value="www">Retail</option>
+              </select>
+              <small id="wowheadDomainHelp" class="form-text text-muted">Select which Wowhead domain should be used for item links</small>
+            </div>
+            <div class="form-group">
+              <label for="latestLoot">&quot;Latest Loot&quot; count</label>
+              <input type="number" class="form-control" id="latestLootCount" name="latestLootCount" aria-describedby="latestLootCountHelp" value="{{guild.latestLootCount}}" placeholder="10">
+              <small id="latestLootCountHelp" class="form-text text-muted">Set the number of &quot;latest loot&quot; items shown; &lt;=0 to disable</small>
+            </div>
+            <button type="submit" class="btn btn-primary">Update Configuration</button>
           </form>
         </div>
       </div>

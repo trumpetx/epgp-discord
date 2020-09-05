@@ -16,6 +16,7 @@ const { addguild, viewguild, deleteguild, uploadbackup, viewbot, config, viewloo
 const { loginFilter, sessionPopulateFilter, refreshTokenFilter } = require('./filters');
 const oauth = require('./oauth');
 const moment = require('moment');
+const _ = require('lodash');
 
 app.use(helmet());
 app.use(methodOverride('_method'));
@@ -29,6 +30,13 @@ app.engine(
     layoutsDir: path.join(__dirname, 'layouts'),
     partialsDir: path.join(__dirname, 'partials'),
     helpers: {
+      wowhead: (item, wowheadDomain) => {
+        item = _.toInteger(item);
+        return (
+          `<a href="https://${wowheadDomain}.wowhead.com/item=${item}" target="_new" data-wowhead="item=${item}` +
+          (wowheadDomain === 'www' ? '' : `&domain=classic'">${item}</a>`)
+        );
+      },
       eqDefault: (o1, o2, def) => (o1 || def) == o2,
       dtFormat: (dt, format) => moment(dt).format(format),
       timestamp: date => date.getTime(),
