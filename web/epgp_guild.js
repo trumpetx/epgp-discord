@@ -131,6 +131,7 @@ module.exports.viewloot = (req, res) => {
   db.findOne({ id: guildid }, (err, guild) => {
     if (err) throw new Error(err);
     const alias = ((guild.aliases || {})[member] || {}).alias;
+    const wowheadDomain = guild.wowheadDomain || 'classic';
     const gpData = [];
     const epData = [];
     const prData = [];
@@ -169,9 +170,15 @@ module.exports.viewloot = (req, res) => {
     ]
       .map(str => str.split('~~~'))
       .map(arr => {
+        // DKPReloaded is a plain number here
+        let item = arr[1];
+        const epgpClassicParse = item.match(/^item:(\d+):/);
+        if (epgpClassicParse && epgpClassicParse.length > 1) {
+          item = epgpClassicParse[1];
+        }
         return {
           date: new Date(_.toInteger(arr[0]) * 1000),
-          item: arr[1].match(/^item:(\d+):/)[1],
+          item,
           gp: _.toInteger(arr[2])
         };
       })
@@ -186,7 +193,8 @@ module.exports.viewloot = (req, res) => {
       loot,
       noLootList,
       member,
-      displayName: displayName(guild, member)
+      displayName: displayName(guild, member),
+      wowheadDomain
     });
   });
 };
@@ -219,10 +227,11 @@ module.exports.viewbot = (req, res) => {
   });
 };
 
-module.exports.editbot = (req, res) => {
+module.exports.config = (req, res) => {
   const guildid = req.params.guildid;
   if (!isAdmin(req)) throw GENERIC_ERROR;
   const setValues = {};
+  const setGuildValues = {};
   if (req.body.disableBot) {
     setValues.disabled = req.body.disableBot === 'true';
   }
@@ -239,10 +248,16 @@ module.exports.editbot = (req, res) => {
       return;
     }
   }
+  if (['classic', 'www'].indexOf(req.body.wowheadDomain) != -1) {
+    setGuildValues.wowheadDomain = req.body.wowheadDomain;
+  }
   logger.debug(JSON.stringify(setValues));
   bots.update({ id: guildid }, { $set: setValues }, {}, (err, _updatedCount) => {
     if (err) logger.error(err);
-    res.redirect('/bot/' + guildid);
+    db.update({ id: guildid }, { $set: setGuildValues }, {}, (err2, _updatedCount2) => {
+      if (err2) logger.error(err2);
+      res.redirect('/bot/' + guildid);
+    });
   });
 };
 
@@ -256,7 +271,7 @@ module.exports.deleteguild = (req, res) => {
 };
 
 /**
- 
+
 {"guild":"Magma Carta Club","region":"us","min_ep":0,"base_gp":1,"roster":[["Slyfrost-Pagle",18,100],
 ["Laathan-Pagle",240,1],["Laurentia-Pagle",217,45],["Artan-Pagle",240,1],["Ghend-Pagle",240,142],["T\u00FFgar-Pagle",138,117],["Linaera-Pagle",230,1],
 ["Crakel-Pagle",240,30],["Chronosduex-Pagle",232,90],["D\u00E5ggerz-Pagle",120,1],["Ellowynn-Pagle",240,1],["Miralei-Pagle",138,75],["Nickerdood-Pagle",230,1],
@@ -294,7 +309,7 @@ module.exports.deleteguild = (req, res) => {
 [1581564655,"Roxie-Pagle","item:19137::::::::60:::::::",1723],[1581564725,"Roxie-Pagle","item:16962::::::::60:::::::",2000],[1581564766,"Emmalee-Pagle","item:19138::::::::60:::::::",1287],
 [1581564800,"Chronosduex-Pagle","item:16954::::::::60:::::::",2000],[1581565306,"Raidhealer-Pagle","item:16817::::::::60:::::::",750],[1581565416,"Effinlazy-Pagle","item:16851::::::::60:::::::",750],
 [1581565448,"Allorraxx-Pagle","item:16851::::::::60:::::::",750],[1581566767,"Chronosduex-Pagle","item:16954::::::::60:::::::",-2000]],"timestamp":1582031872,"extras_p":100,"realm":"Pagle"}
- 
+
  */
 function validateSchema(json) {
   return _.isArray(json.roster) && ((json.guild && json.region && _.isArray(json.loot)) || (json.roster.length > 0 && isCEPGP(json.roster[0])));
@@ -313,16 +328,15 @@ module.exports.uploadbackup = (req, res) => {
     db.update({ id: guildid }, { $push: { backups: uploadBackup } }, {}, err => {
       if (err) throw new Error(err);
       logger.debug('Backup uploaded');
-      bots.findOne({ id: guildid }, (err, bot) => {
+      db.findOne({ id: guildid }, (err, guild) => {
         if (err) {
           logger.error(err);
           return;
         }
-        logger.debug('Bot found: ' + JSON.stringify(bot));
-        if (bot && bot.webhook && bot.webhook.startsWith('http')) {
+        if (guild && guild.webhook && guild.webhook.startsWith('http')) {
           // TODO: remove dupe code from here and message.js
           const chunkHeader = moment(uploadBackup.timestampDate).format('YYYY-MM-DD HH:mm') + '```\nName                     EP          GP          PR\n';
-          const chunkFooter = '```'; // + `See full details: ${props.hostname}${props.extPortString}/epgp/${guildid}`;
+          const chunkFooter = '```' + `[See full details](<${props.hostname}${props.extPortString}/epgp/${guildid}/>)`;
           const msg = [];
           const calcPr = entry => (_.toNumber(entry[1]) / _.toNumber(entry[2])).toFixed(2);
           uploadBackup.roster

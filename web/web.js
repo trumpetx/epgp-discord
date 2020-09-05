@@ -12,7 +12,7 @@ const { props } = require('../props');
 const app = (module.exports = express());
 const logout = require('./logout');
 const epgp = require('./epgp');
-const { addguild, viewguild, deleteguild, uploadbackup, viewbot, editbot, viewloot, addAlias, viewexport } = require('./epgp_guild');
+const { addguild, viewguild, deleteguild, uploadbackup, viewbot, config, viewloot, addAlias, viewexport } = require('./epgp_guild');
 const { loginFilter, sessionPopulateFilter, refreshTokenFilter } = require('./filters');
 const oauth = require('./oauth');
 const moment = require('moment');
@@ -29,6 +29,7 @@ app.engine(
     layoutsDir: path.join(__dirname, 'layouts'),
     partialsDir: path.join(__dirname, 'partials'),
     helpers: {
+      eqDefault: (o1, o2, def) => (o1 || def) == o2,
       dtFormat: (dt, format) => moment(dt).format(format),
       timestamp: date => date.getTime(),
       reverse: function(context) {
@@ -82,7 +83,7 @@ app.get('/about', (_req, res) => res.render('about'));
 app.get('/logout', logout);
 app.get('/epgp', epgp);
 app.get('/bot/:guildid', viewbot);
-app.post('/bot/:guildid', editbot);
+app.post('/config/:guildid', config);
 app.post('/epgp/:guildid', addguild);
 app.get('/epgp/:guildid', viewguild);
 app.get('/epgp/:guildid/export', viewexport);

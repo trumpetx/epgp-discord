@@ -1,6 +1,6 @@
 const Discord = require('discord.js');
 const { logger, infoHandler, warnHandler, errorHandler } = require('../logger.js');
-const { bots } = require('../db');
+const { db, bots } = require('../db');
 const moment = require('moment');
 
 const upsert = guid => {
@@ -8,7 +8,15 @@ const upsert = guid => {
     if (err) {
       logger.error(err);
     } else {
-      // Do something?
+      bots.findOne({ id: guid }, (err, bot) => {
+        if (err) logger.error(err);
+        // Migrate webhook data to guilds db
+        if (bot.webhook) {
+          db.update({ id: guid }, { $set: { webhook: bot.webhook } }, { upsert: true }, (err, _numReplaced, _newDoc) => {
+            if (err) logger.error(err);
+          });
+        }
+      });
     }
   });
 };
