@@ -221,27 +221,31 @@ module.exports.viewloot = (req, res) => {
         return false;
       });
       loot = loot.filter(item => {
-        if (refunded.length == 0) {
-          return true;
-        }
-        const next = refunded[0];
-        if (next.gp === -item.gp && next.item === item.item) {
-          logger.debug('Filtering out refunded item ' + item.item + ' and a GP value of ' + item.gp);
-          refunded.shift();
-          last = undefined;
-          return false;
-        }
-        if (next.gp === item.gp && next.item === item.item) {
-          if (last) {
-            trueNegative.push(last);
+        if (refunded.length > 0) {
+          const next = refunded[0];
+          if (next.gp === -item.gp && next.item === item.item) {
+            logger.debug('Filtering out refunded item ' + item.item + ' and a GP value of ' + item.gp);
+            refunded.shift();
+            last = undefined;
+            return false;
           }
-          last = next;
-          logger.debug('Filtering out refunded item ' + item.item + ' and a GP value of ' + item.gp);
-          return false;
+          if (next.gp === item.gp && next.item === item.item) {
+            if (last) {
+              trueNegative.push(last);
+            }
+            last = next;
+            logger.debug('Filtering out refunded item ' + item.item + ' and a GP value of ' + item.gp);
+            return false;
+          }
         }
+        return true;
       });
+      if (last) {
+        trueNegative.push(last);
+        logger.debug('Unaccounted for refunded item ' + last.item + ' and a GP value of ' + last.gp);
+      }
       if (trueNegative.length > 0) {
-        logger.debug('Some negative priced items were not refunds, adding back in: ' + trueNegative);
+        logger.debug('Some negative priced items were not refunds, adding back in: ' + trueNegative.map(item => item.item + '/' + item.gp).join(', '));
         loot = loot.concat(trueNegative).sort((o1, o2) => o1.date - o2.date);
       }
     }
