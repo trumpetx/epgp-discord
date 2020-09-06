@@ -24,7 +24,7 @@ const logger = winston.createLogger({
 
 logger.stream = {
   write: function(message, _encoding) {
-    logger.info(message);
+    // logger.debug(message);
   }
 };
 

@@ -143,6 +143,13 @@ function median(values) {
   else return (values[half - 1] + values[half]) / 2.0;
 }
 
+// Squish loot times to every 15 minutes to filter out duplicates
+// Loot lists from separate clients seem to be not perfect on timestamps
+function squishTimestamp(timestamp) {
+  let unixTimestamp = _.toInteger(timestamp);
+  return unixTimestamp - (unixTimestamp % 900);
+}
+
 module.exports.viewloot = (req, res) => {
   const guildid = req.params.guildid;
   const member = req.params.member;
@@ -157,7 +164,8 @@ module.exports.viewloot = (req, res) => {
     let prs = [];
     let maxEpgp = 100;
     let noLootList = false;
-    const loot = [
+    const refundedList = {};
+    let loot = [
       ...new Set(
         (guild.backups || [])
           .map(b => {
@@ -184,7 +192,13 @@ module.exports.viewloot = (req, res) => {
           })
           .reduce((arr, v) => arr.concat(v), [])
           .filter(arr => member === arr[1] || (alias !== undefined && arr[1].startsWith(alias)))
-          .map(arr => arr[0] + '~~~' + arr[2] + '~~~' + arr[3])
+          .map(arr => {
+            let timestamp = arr[0];
+            if (guild.enableDuplicateFilter) {
+              timestamp = squishTimestamp(timestamp);
+            }
+            return timestamp + '~~~' + arr[2] + '~~~' + arr[3];
+          })
       )
     ]
       .map(str => str.split('~~~'))
@@ -196,6 +210,41 @@ module.exports.viewloot = (req, res) => {
         };
       })
       .sort((o1, o2) => o1.date - o2.date);
+    if (guild.enableRefundFilter) {
+      let last = undefined;
+      const trueNegative = [];
+      const refunded = loot.reverse().filter(item => {
+        if (item.gp < 0) {
+          logger.debug('Marking item ' + item.item + '/' + item.gp + ' as a refunded item. ');
+          return true;
+        }
+        return false;
+      });
+      loot = loot.filter(item => {
+        if (refunded.length == 0) {
+          return true;
+        }
+        const next = refunded[0];
+        if (next.gp === -item.gp && next.item === item.item) {
+          logger.debug('Filtering out refunded item ' + item.item + ' and a GP value of ' + item.gp);
+          refunded.shift();
+          last = undefined;
+          return false;
+        }
+        if (next.gp === item.gp && next.item === item.item) {
+          if (last) {
+            trueNegative.push(last);
+          }
+          last = next;
+          logger.debug('Filtering out refunded item ' + item.item + ' and a GP value of ' + item.gp);
+          return false;
+        }
+      });
+      if (trueNegative.length > 0) {
+        logger.debug('Some negative priced items were not refunds, adding back in: ' + trueNegative);
+        loot = loot.concat(trueNegative).sort((o1, o2) => o1.date - o2.date);
+      }
+    }
     res.render('loot', {
       avgPr: median(prs),
       maxEpgp,
@@ -267,7 +316,13 @@ module.exports.config = (req, res) => {
   if (req.body.latestLootCount) {
     setGuildValues.latestLootCount = _.toInteger(req.body.latestLootCount);
   }
-  logger.debug(JSON.stringify(setValues));
+  // HACK: rather than rely on having 2x checkboxes,
+  // we're just using the knowledge of whether something else was submitted to know whether this was as well.
+  if (Object.keys(setGuildValues).length > 0) {
+    setGuildValues.enableRefundFilter = req.body.enableRefundFilter === 'true';
+    setGuildValues.enableDuplicateFilter = req.body.enableDuplicateFilter === 'true';
+  }
+  logger.debug('Updating configuration: ' + JSON.stringify(_.merge(setValues, setGuildValues)));
   bots.update({ id: guildid }, { $set: setValues }, {}, (err, _updatedCount) => {
     if (err) logger.error(err);
     db.update({ id: guildid }, { $set: setGuildValues }, {}, (err2, _updatedCount2) => {
