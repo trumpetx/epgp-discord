@@ -33,7 +33,7 @@ app.engine(
       wowhead: (item, wowheadDomain) => {
         item = _.toInteger(item);
         return (
-          `<a href="https://${wowheadDomain}.wowhead.com/item=${item}" target="_new" data-wowhead="item=${item}` +
+          `<a href="https://${wowheadDomain}.wowhead.com/item=${item}" target="_new" data-wowhead="item=${item}"` +
           (wowheadDomain === 'www' ? '' : `&domain=classic'">${item}</a>`)
         );
       },
