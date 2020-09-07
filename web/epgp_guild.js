@@ -31,7 +31,7 @@ function generateSearch(guildid) {
 }
 
 function itemParse(item) {
-  const epgpClassicParse = item.match(/^item:(\d+):/);
+  const epgpClassicParse = item && (''+item).match(/^item:(\d+):/);
   if (epgpClassicParse && epgpClassicParse.length > 1) {
     return epgpClassicParse[1];
   }
