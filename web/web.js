@@ -37,6 +37,8 @@ app.engine(
           (wowheadDomain === 'www' ? '' : `&domain=classic'">${item}</a>`)
         );
       },
+      eq: (o1, o2) => o1 == o2,
+      neq: (o1, o2) => o1 != o2,
       eqDefault: (o1, o2, def) => (o1 || def) == o2,
       dtFormat: (dt, format) => moment(dt).format(format),
       timestamp: date => date.getTime(),
