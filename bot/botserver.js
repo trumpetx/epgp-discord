@@ -11,9 +11,16 @@ const upsert = guid => {
       bots.findOne({ id: guid }, (err, bot) => {
         if (err) logger.error(err);
         // Migrate webhook data to guilds db
-        if (bot.webhook) {
+        if (bot.webhook && bot.webhook.length > 0) {
+          logger.info(`Migrating webhook from bot to gulid db ${bot.webhook}`);
           db.update({ id: guid }, { $set: { webhook: bot.webhook } }, { upsert: true }, (err, _numReplaced, _newDoc) => {
-            if (err) logger.error(err);
+            if (err) {
+              logger.error(err);
+            } else {
+              bots.update({ id: guid }, { $set: { webhook: '' } }, { upsert: true }, (err, _numReplaced, _newDoc) => {
+                if (err) logger.error(err);
+              });
+            }
           });
         }
       });

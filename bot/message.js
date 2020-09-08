@@ -1,13 +1,9 @@
 const { logger, errorHandler } = require('../logger.js');
 const { chunk, deleteMsg, isAdmin } = require('./discord-util');
-const { startsWithIgnoreCase } = require('../util');
+const { startsWithIgnoreCase, isCEPGP, rosterToTabList } = require('../util');
 const { props } = require('../props');
 const { db, bots } = require('../db');
 const _ = require('lodash');
-
-function isCEPGP(memberArray) {
-  return memberArray.length === 6;
-}
 
 module.exports = async function message(message) {
   if (message.author.bot) return;
@@ -85,35 +81,14 @@ const handleMessage = (guild, bot, message, args, command) => {
       deleteMsg(message);
     }
   } else {
-    const calcPr = entry => (_.toNumber(entry[1]) / _.toNumber(entry[2])).toFixed(2);
     if (!roster) {
       reply.push('No data has been uploaded yet :/');
     } else {
-      chunkHeader = '```\nName                     EP          GP          PR\n';
-      chunkFooter = '\n```';
-      roster
-        .map(arr => {
-          if (isCEPGP(arr)) {
-            return [arr[0], arr[3], arr[4]];
-          } else {
-            return arr;
-          }
-        })
-        .sort((e1, e2) => calcPr(e2) - calcPr(e1))
-        .forEach(entry => {
-          let name = entry[0];
-          const idx = name.lastIndexOf('-');
-          if (idx !== -1) {
-            name = name.substring(0, idx);
-          }
-          name = name.padEnd(25, ' ');
-          const ep = ('' + entry[1]).padEnd(12, ' ');
-          const gp = ('' + entry[2]).padEnd(12, ' ');
-          const pr = calcPr(entry);
-          if (pr > 0) {
-            replyOrMsg.push(`${name}${ep}${gp}${pr}`);
-          }
-        });
+      const formattedList = rosterToTabList(roster);
+      console.log(formattedList);
+      chunkFooter = formattedList.chunkFooter;
+      chunkHeader = formattedList.chunkHeader;
+      formattedList.roster.forEach(row => replyOrMsg.push(row));
     }
   }
   if (msg.length > 0) {
