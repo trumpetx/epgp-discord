@@ -84,7 +84,7 @@ const handleMessage = (guild, bot, message, args, command) => {
     if (!roster) {
       reply.push('No data has been uploaded yet :/');
     } else {
-      const formattedList = rosterToTabList(roster);
+      const formattedList = rosterToTabList(roster, guild.discordColumnSpacing);
       console.log(formattedList);
       chunkFooter = formattedList.chunkFooter;
       chunkHeader = formattedList.chunkHeader;

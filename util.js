@@ -21,7 +21,7 @@ function calcPr(entry) {
   return (_.toNumber(entry[1]) / _.toNumber(entry[2])).toFixed(2);
 }
 
-module.exports.rosterToTabList = (roster, tabWidth = 4) => {
+module.exports.rosterToTabList = (roster, tabWidth = 2) => {
   let maxName = 8;
   let maxEP = 5;
   let maxGP = 5;

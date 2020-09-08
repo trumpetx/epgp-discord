@@ -316,6 +316,10 @@ module.exports.config = (req, res) => {
   if (req.body.latestLootCount) {
     setGuildValues.latestLootCount = _.toInteger(req.body.latestLootCount);
   }
+  if (req.body.discordColumnSpacing) {
+    const spacing = _.toInteger(req.body.discordColumnSpacing);
+    setGuildValues.discordColumnSpacing = Math.min(Math.max(spacing, 2), 10);
+  }
   // HACK: rather than rely on having 2x checkboxes,
   // we're just using the knowledge of whether something else was submitted to know whether this was as well.
   if (Object.keys(setGuildValues).length > 0) {
@@ -364,7 +368,7 @@ module.exports.uploadbackup = (req, res) => {
           return;
         }
         if (guild && guild.webhook && guild.webhook.startsWith('http')) {
-          const formattedList = rosterToTabList(uploadBackup.roster);
+          const formattedList = rosterToTabList(uploadBackup.roster, guild.discordColumnSpacing);
           const chunkFooter = formattedList.chunkFooter + `[See full details](<${props.hostname}${props.extPortString}/epgp/${guildid}/>)`;
           const chunkHeader = moment(uploadBackup.timestampDate).format('YYYY-MM-DD HH:mm') + formattedList.chunkHeader;
           const msg = formattedList.roster;
