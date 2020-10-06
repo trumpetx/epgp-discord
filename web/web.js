@@ -31,6 +31,7 @@ app.engine(
     partialsDir: path.join(__dirname, 'partials'),
     helpers: {
       wowhead: (item, wowheadDomain) => {
+        wowheadDomain = wowheadDomain || 'classic';
         item = _.toInteger(item);
         return (
           `<a href="https://${wowheadDomain}.wowhead.com/item=${item}" target="_new" data-wowhead="item=${item}"` +
