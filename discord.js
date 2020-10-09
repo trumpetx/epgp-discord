@@ -100,5 +100,5 @@ module.exports.discordUrl = state =>
 
 // https://discordapp.com/developers/docs/topics/permissions
 module.exports.ADMIN_PERMISSION = 8;
-module.exports.MANAGE_GUILD = 20;
+module.exports.MANAGE_GUILD = 32; //0x00000020;
 module.exports.botUrl = `${DISCORD_BASE}/oauth2/authorize?client_id=${props.clientId}&scope=bot&permissions=${props.botPermissions}`;
