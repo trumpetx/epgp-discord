@@ -44,7 +44,7 @@ module.exports = (req, res) => {
         req.session.guilds = body;
         req.session.guilds_timestamp = new Date().getTime();
         _.forEach(req.session.guilds, guild => {
-          guild.admin = guild.owner || (guild.permissions & MANAGE_GUILD) === MANAGE_GUILD || (guild.permissions & ADMIN_PERMISSION) === ADMIN_PERMISSION;
+          guild.admin = guild.owner || (guild.permissions & ADMIN_PERMISSION) === ADMIN_PERMISSION;
         });
         renderGuilds(req, res);
       });

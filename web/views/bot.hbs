@@ -12,6 +12,7 @@
         <br/>
         <div>
           <form method="POST" action="/config/{{guild.id}}">
+            <input type="hidden" name="isGeneral" value="true" />
             <div class="form-group">
               <label for="webhook">Webhook URL</label>
               <input
@@ -26,6 +27,19 @@
                 Get this URL by right-clicking the channel -> Edit Channel -> Webhooks -> Create Webhook<br/>
                 Adding a Webhook URL will post EPGP values to the Webhook channel every time you upload a new backup.<br/>
                 The Discord Bot is <b>not</b> required when using the webhook.
+              </small>
+            </div>
+            <div class="form-group">
+              <label for="discordUploadPermission">Upload Backup Permission (Discord)</label>
+              <select size="4" style="width:300px;" class="form-control" name="discordUploadPermission" id="discordUploadPermission" aria-describedby="discordUploadPermissionHelp" multiple>
+                <option {{#if (hasPerm guild.discordUploadPermission 'MANAGE_GUILD')}}SELECTED{{/if}} value="MANAGE_GUILD">MANAGE_GUILD</option>
+                <option {{#if (hasPerm guild.discordUploadPermission 'MANAGE_CHANNELS')}}SELECTED{{/if}} value="MANAGE_CHANNELS">MANAGE_CHANNELS</option>
+                <option {{#if (hasPerm guild.discordUploadPermission 'MANAGE_WEBHOOKS')}}SELECTED{{/if}} value="MANAGE_WEBHOOKS">MANAGE_WEBHOOKS</option>
+                <option {{#if (hasPerm guild.discordUploadPermission 'MANAGE_ROLES')}}SELECTED{{/if}} value="MANAGE_ROLES">MANAGE_ROLES </option>
+              </select>
+              <small id="discordAdminPermissionHelp" class="form-text text-muted">
+                This permission allows a user to upload EP/GP backups and download archives.  It does not allow them to modify the guild configuration.<br/>
+                Discord owners and users with the ADMINISTRATOR permission can always upload backups and download archives.
               </small>
             </div>
             <div class="form-group">
@@ -76,29 +90,44 @@
       </div>
     </div>
     <br/>
-    {{#if bot}}
-      <div class="card">
-        <div class="card-body">
-          <h4 class="card-title">Discord Bot Config</h4>
-          <br/>
-          <div>
-            <form method="POST" action="/config/{{guild.id}}">
-              <div class="form-group">
-                {{#if bot.disabled}}
-                  <input type="hidden" name="disableBot" value="false" />
-                  <button type="submit" class="btn btn-success">Enable Bot</button>
-                {{else}}
-                  <input type="hidden" name="disableBot" value="true" />
-                  <button type="submit" class="btn btn-warning">Disable Bot</button>
-                {{/if}}
-              </div>
-            </form>
+    <div class="card">
+      <div class="card-body">
+        <h4 class="card-title">Advanced Configuration</h4>
+        <br/>
+        <div>
+          <div class="form-group">
+            {{#if bot}}
+              <form method="POST" action="/config/{{guild.id}}">
+                  {{#if bot.disabled}}
+                    <input type="hidden" name="disableBot" value="false" />
+                    <button type="submit" class="btn btn-success">Enable Bot</button>
+                  {{else}}
+                    <input type="hidden" name="disableBot" value="true" />
+                    <button type="submit" class="btn btn-warning">Disable Bot</button>
+                  {{/if}}
+              </form>
+            {{else}}
+              <div><a class="btn btn-primary" target="_new" href="{{botUrl}}" role="button">Add Discord Bot</a></div>
+            {{/if}}
+          </div>
+          <div class="form-group">
+            <button class="btn btn-warning" type="button" data-toggle="collapse" data-target="#realDeleteGuild" aria-expanded="false" aria-controls="realDeleteGuild">
+              <i class="fa fa-trash-o" aria-hidden="true"></i>&nbsp;&nbsp;Delete Guild
+            </button>
+            <div class="collapse" id="realDeleteGuild">
+              <br/>
+              <form method="POST" action="/epgp/{{guild.id}}?_method=DELETE">
+                <button type="submit" class="btn btn-danger confirm">
+                  <i class="fa fa-trash-o" aria-hidden="true"></i>&nbsp;&nbsp;No Really, Delete Guild
+                </button>
+              </form>
+            </div>
+
           </div>
         </div>
       </div>
-    {{else}}
-      <div><a class="btn btn-secondary" target="_new" href="{{botUrl}}" role="button">Add Discord Bot</a></div>
-    {{/if}}
+    </div>
+    <br/>
   {{/if}}
 {{else}}
   <div class="alert alert-danger" role="alert">
@@ -121,7 +150,7 @@
     The Discord bot has not been added to your server
   </div>
   {{#unless isAdmin}}
-    <div>A user with ADMIN or MANAGE_GUILD permissions needs to come to this page to add the bot to the Discord server</div>
+    <div>The Discord Owner or member with the ADMINISTRATOR permission needs to come to this page to add the bot to the Discord server</div>
   {{/unless}}
 {{/if}}
 <br/>

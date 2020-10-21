@@ -17,6 +17,7 @@ const { loginFilter, sessionPopulateFilter, refreshTokenFilter } = require('./fi
 const oauth = require('./oauth');
 const moment = require('moment');
 const _ = require('lodash');
+const discord = require('../discord');
 
 app.use(helmet());
 app.use(methodOverride('_method'));
@@ -39,6 +40,11 @@ app.engine(
         );
       },
       eq: (o1, o2) => o1 == o2,
+      hasPerm: (mask, perm) => {
+        perm = discord[perm];
+        mask = mask || 0x00;
+        return (mask & perm) === perm;
+      },
       neq: (o1, o2) => o1 != o2,
       eqDefault: (o1, o2, def) => (o1 || def) == o2,
       dtFormat: (dt, format) => moment(dt).format(format),

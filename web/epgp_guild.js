@@ -1,5 +1,6 @@
 const { db, bots } = require('../db');
-const { botUrl } = require('../discord');
+const discord = require('../discord');
+const botUrl = discord.botUrl;
 const request = require('request');
 const { logger } = require('../logger');
 const { chunk } = require('../bot/discord-util');
@@ -42,8 +43,11 @@ function itemParse(item) {
 module.exports.viewguild = (req, res) => {
   const guildid = req.params.guildid;
   db.findOne(generateSearch(guildid), (err, guild) => {
-    if (err) throw new Error(err);
-    if (!isUserOfGuild(guild)) throw GENERIC_ERROR;
+    if (err) logger.error(err);
+    if (!isUserOfGuild(guild)) {
+      res.redirect('/epgp');
+      return;
+    }
     const index = req.query.index || (guild.backups || []).length - 1;
     const current = guild.backups && guild.backups[index];
     let customJson = {};
@@ -69,7 +73,18 @@ module.exports.viewguild = (req, res) => {
           });
       }
     }
-    res.render('guild', { latestLoot, canCustomize, isAdmin: isAdmin(req), guild, index, current, customJson: JSON.stringify(customJson, null, 2) });
+    canUpload(req, canUpload =>
+      res.render('guild', {
+        latestLoot,
+        canCustomize,
+        canUpload,
+        isAdmin: isAdmin(req),
+        guild,
+        index,
+        current,
+        customJson: JSON.stringify(customJson, null, 2)
+      })
+    );
   });
 };
 
@@ -262,15 +277,24 @@ module.exports.viewloot = (req, res) => {
 };
 
 module.exports.viewexport = (req, res) => {
-  const guildid = req.params.guildid;
-  if (!isAdmin(req)) throw GENERIC_ERROR;
-  db.findOne({ id: guildid }, (err, guild) => {
-    if (err) logger.error(err);
-    const index = req.query.index || (guild.backups || []).length - 1;
-    const backup = index === -1 ? {} : guild.backups && guild.backups[index];
-    delete backup.uploadedDate;
-    delete backup.timestampDate;
-    res.json(backup);
+  canUpload(req, canUpload => {
+    if (!canUpload) {
+      res.json({});
+    } else {
+      const guildid = req.params.guildid;
+      db.findOne({ id: guildid }, (err, guild) => {
+        if (err) {
+          logger.error(err);
+          res.json({});
+        } else {
+          const index = req.query.index || (guild.backups || []).length - 1;
+          const backup = (index === -1 ? {} : guild.backups && guild.backups[index]) || {};
+          delete backup.uploadedDate;
+          delete backup.timestampDate;
+          res.json(backup);
+        }
+      });
+    }
   });
 };
 
@@ -292,6 +316,7 @@ module.exports.viewbot = (req, res) => {
 module.exports.config = (req, res) => {
   const guildid = req.params.guildid;
   if (!isAdmin(req)) throw GENERIC_ERROR;
+  const isGeneralForm = req.body.isGeneral === 'true';
   const setValues = {};
   const setGuildValues = {};
   if (req.body.disableBot) {
@@ -299,6 +324,14 @@ module.exports.config = (req, res) => {
   }
   if (req.body.disableBot) {
     setValues.disabled = req.body.disableBot === 'true';
+  }
+  if (req.body.discordUploadPermission) {
+    const permissions = Array.isArray(req.body.discordUploadPermission) ? req.body.discordUploadPermission : [req.body.discordUploadPermission];
+    let mask = 0;
+    _.forEach(permissions, perm => (mask |= discord[perm]));
+    setGuildValues.discordUploadPermission = mask;
+  } else if (isGeneralForm) {
+    setGuildValues.discordUploadPermission = 0x00;
   }
   if (req.body.webhook) {
     const webhook = req.body.webhook.trim();
@@ -320,9 +353,7 @@ module.exports.config = (req, res) => {
     const spacing = _.toInteger(req.body.discordColumnSpacing);
     setGuildValues.discordColumnSpacing = Math.min(Math.max(spacing, 2), 10);
   }
-  // HACK: rather than rely on having 2x checkboxes,
-  // we're just using the knowledge of whether something else was submitted to know whether this was as well.
-  if (Object.keys(setGuildValues).length > 0) {
+  if (isGeneralForm) {
     setGuildValues.enableRefundFilter = req.body.enableRefundFilter === 'true';
     setGuildValues.enableDuplicateFilter = req.body.enableDuplicateFilter === 'true';
   }
@@ -349,60 +380,83 @@ function validateSchema(json) {
   return _.isArray(json.roster) && ((json.guild && json.region && _.isArray(json.loot)) || (json.roster.length > 0 && isCEPGP(json.roster[0])));
 }
 
-module.exports.uploadbackup = (req, res) => {
-  const guildid = req.params.guildid;
-  if (!isAdmin(req)) throw GENERIC_ERROR;
-  const uploadBackup = JSON.parse(req.body.uploadBackup);
-  if (!validateSchema(uploadBackup)) {
-    res.redirect('/epgp/' + guildid + '?message=' + encodeURIComponent('Invalid Backup JSON'));
+function canUpload(req, callback) {
+  if (isAdmin(req)) {
+    callback(true);
   } else {
-    uploadBackup.uploadedDate = new Date();
-    // Unix timestamp to .js timestamp
-    uploadBackup.timestampDate = new Date(uploadBackup.timestamp * 1000);
-    db.update({ id: guildid }, { $push: { backups: uploadBackup } }, {}, err => {
-      if (err) throw new Error(err);
-      logger.debug('Backup uploaded');
+    const g = getGuild(req);
+    if (!g) {
+      callback(false);
+    } else {
+      const guildid = req.params.guildid;
       db.findOne({ id: guildid }, (err, guild) => {
         if (err) {
           logger.error(err);
-          return;
+          callback(false);
         }
-        if (guild && guild.webhook && guild.webhook.startsWith('http')) {
-          const formattedList = rosterToTabList(uploadBackup.roster, guild.discordColumnSpacing);
-          const chunkFooter = formattedList.chunkFooter + `[See full details](<${props.hostname}${props.extPortString}/epgp/${guildid}/>)`;
-          const chunkHeader = moment(uploadBackup.timestampDate).format('YYYY-MM-DD HH:mm') + formattedList.chunkHeader;
-          const msg = formattedList.roster;
-          chunk(
-            msg,
-            1900,
-            content => {
-              request(
-                {
-                  method: 'POST',
-                  url: guild.webhook,
-                  headers: {
-                    'Content-Type': 'application/json',
-                    Accept: 'application/json'
-                  },
-                  body: JSON.stringify({ content })
-                },
-                (error, response, body) => {
-                  if (error) {
-                    logger.error(error);
-                  } else if (response.statusCode !== 200 && response.statusCode !== 204) {
-                    logger.error('Bad Status on webhook response: ' + response.statusCode + '\n\n' + body);
-                  }
-                }
-              );
-            },
-            chunkHeader,
-            chunkFooter
-          );
-        }
-        res.redirect('/epgp/' + guildid);
+        const discordUploadPermission = guild.discordUploadPermission || 0x00;
+        callback((discordUploadPermission & g.permissions) !== 0);
       });
-    });
+    }
   }
+}
+
+module.exports.uploadbackup = (req, res) => {
+  const guildid = req.params.guildid;
+  canUpload(req, canUpload => {
+    if (!canUpload) throw GENERIC_ERROR;
+    const uploadBackup = JSON.parse(req.body.uploadBackup);
+    if (!validateSchema(uploadBackup)) {
+      res.redirect('/epgp/' + guildid + '?message=' + encodeURIComponent('Invalid Backup JSON'));
+    } else {
+      uploadBackup.uploadedDate = new Date();
+      // Unix timestamp to .js timestamp
+      uploadBackup.timestampDate = new Date(uploadBackup.timestamp * 1000);
+      db.update({ id: guildid }, { $push: { backups: uploadBackup } }, {}, err => {
+        if (err) throw new Error(err);
+        logger.debug('Backup uploaded');
+        db.findOne({ id: guildid }, (err, guild) => {
+          if (err) {
+            logger.error(err);
+            return;
+          }
+          if (guild && guild.webhook && guild.webhook.startsWith('http')) {
+            const formattedList = rosterToTabList(uploadBackup.roster, guild.discordColumnSpacing);
+            const chunkFooter = formattedList.chunkFooter + `[See full details](<${props.hostname}${props.extPortString}/epgp/${guildid}/>)`;
+            const chunkHeader = moment(uploadBackup.timestampDate).format('YYYY-MM-DD HH:mm') + formattedList.chunkHeader;
+            const msg = formattedList.roster;
+            chunk(
+              msg,
+              1900,
+              content => {
+                request(
+                  {
+                    method: 'POST',
+                    url: guild.webhook,
+                    headers: {
+                      'Content-Type': 'application/json',
+                      Accept: 'application/json'
+                    },
+                    body: JSON.stringify({ content })
+                  },
+                  (error, response, body) => {
+                    if (error) {
+                      logger.error(error);
+                    } else if (response.statusCode !== 200 && response.statusCode !== 204) {
+                      logger.error('Bad Status on webhook response: ' + response.statusCode + '\n\n' + body);
+                    }
+                  }
+                );
+              },
+              chunkHeader,
+              chunkFooter
+            );
+          }
+          res.redirect('/epgp/' + guildid);
+        });
+      });
+    }
+  });
 };
 
 function validateImportSchema(json) {

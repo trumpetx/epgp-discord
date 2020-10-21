@@ -40,15 +40,12 @@
     </div>
     <div class="col-sm">
       <h4>&nbsp;</h4>
-      {{#if isAdmin}}
-        <form method="POST" action="/epgp/{{guild.id}}?_method=DELETE">
-          <button type="submit" class="btn btn-danger confirm">
-            <i class="fa fa-trash" aria-hidden="true"></i>&nbsp;&nbsp;Delete Guild
-          </button>
-        </form><br/>
+      {{#if canUpload}}
         <button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#uploadModal">
           <i class="fa fa-cloud-upload" aria-hidden="true"></i>&nbsp;&nbsp;Upload Backup
         </button><br/><br/>
+      {{/if}}
+      {{#if isAdmin}}
         {{#if canCustomize}}
           <button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#aliasModal">
             <i class="fa fa-pencil" aria-hidden="true"></i>&nbsp;&nbsp;Customize Guild
@@ -91,7 +88,7 @@
     <td>{{dtFormat timestampDate 'YYYY-MM-DD HH:mm'}}</td>
     <td class="narrow">
       <a class="btn btn-primary btn-sm" href="/epgp/{{../guild.id}}?index={{index}}" role="button">View</a>
-      {{#if ../isAdmin}}
+      {{#if ../canUpload}}
         &nbsp;&nbsp;
         <a class="btn btn-primary btn-sm" href="/epgp/{{../guild.id}}/export?index={{index}}" role="button">Export</a>
       {{/if}}
