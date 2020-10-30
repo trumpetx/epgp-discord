@@ -3,6 +3,7 @@ const discord = require('../discord');
 const botUrl = discord.botUrl;
 const request = require('request');
 const { logger } = require('../logger');
+const { client } = require('../bot/botserver');
 const { chunk } = require('../bot/discord-util');
 const { props } = require('../props');
 const moment = require('moment');
@@ -18,6 +19,10 @@ const isUser = (req, admin) => isUserOfGuild(getGuild(req), admin);
 module.exports.addguild = (req, res) => {
   const guild = getGuild(req);
   if (!isAdminOfGuild(guild)) throw GENERIC_ERROR;
+
+  // Set default EPGP Manager role
+  guild.epgpManager = "EPGP Manager";
+
   db.insert(guild, (err, doc) => {
     if (err) throw new Error(err);
     res.redirect('/epgp/' + doc.id);
@@ -41,6 +46,35 @@ function itemParse(item) {
 }
 
 module.exports.viewguild = (req, res) => {
+  const guild = client.guilds.get(req.params.guildid);
+
+  if (!guild) {
+    logger.info('EP/GP BOT not installed in guild: ' + req.params.guildid);
+    req.session.epgpManager = false;
+    viewGuildCallback(req, res);
+    return;
+  }
+
+  db.findOne({ id: req.params.guildid }, (err, guildDB) => {
+    if (err) logger.error(err);
+
+    guild.fetchMembers(req.session.discord_user.username)
+      .then(guild => {
+        const member = guild.members.get(req.session.discord_user.id);
+        const epgpManager = member.roles.find(r => r.name === guildDB.epgpManager)
+        req.session.epgpManager = Boolean(epgpManager);
+        logger.info('EP/GP User: ' + member.user.username + ' has EPGP Manager role: ' + guildDB.epgpManager + '=' + req.session.epgpManager);
+        viewGuildCallback(req, res);
+      })
+      .catch(err => {
+        logger.error('EP/GP cannot fetch member: ' + req.session.discord_user.id)
+        req.session.epgpManager = false;
+        viewGuildCallback(req, res);
+      });
+  });
+}
+
+function viewGuildCallback(req, res) {
   const guildid = req.params.guildid;
   db.findOne(generateSearch(guildid), (err, guild) => {
     if (err) logger.error(err);
@@ -395,7 +429,7 @@ function canUpload(req, callback) {
           callback(false);
         }
         const discordUploadPermission = guild.discordUploadPermission || 0x00;
-        callback((discordUploadPermission & g.permissions) !== 0);
+        callback((discordUploadPermission & g.permissions) !== 0 || req.session.epgpManager);
       });
     }
   }
