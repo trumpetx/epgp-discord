@@ -49,6 +49,29 @@ const handleMessage = (guild, bot, message, args, command) => {
   if (!(memberAdmin && command === 'config') && bot.disabled) {
     // Silently return unless an admin is processing configuration
     return;
+  } else if (guild.epgpManager && command === 'manager') {
+    if (!memberAdmin) {
+      reply.push('Only server administrators can update the bot configuration');
+    } else if (args.length === 0) {
+      reply.push('Missing manager role');
+    } else if (args.length === 1) {
+      let mention = args[0];
+      if (mention.startsWith('<@&') && mention.endsWith('>')) {
+        mention = mention.slice(3, -1);
+        const role = message.guild.roles.get(mention);
+        const setGuildValues = {};
+        setGuildValues.epgpManager = role.name;
+        db.update({ id: message.guild.id }, { $set: setGuildValues }, {}, (err2, _updatedCount2) => {
+          if (err2) logger.error(err2);
+        });
+        reply.push(`Set EPGP Manager role to: ${role.name}`);
+      } else if (mention.toLowerCase() === 'get') {
+        reply.push(`Current EPGP Manager role is: ` + guild.epgpManager);
+      }
+      else {
+        reply.push(`Please give a role mention`);
+      }
+    }    
   } else if (startsWithIgnoreCase(command, 'help')) {
     reply.push('EP/GP Bot Instructions:\n\nThis message: `!epgp help`\nFull EPGP List: `!epgp`\nYour EPGP: `!epgp YourWowCharName`');
   } else if (notConfigured && !memberAdmin) {
