@@ -5,7 +5,7 @@
   "license": "UNLICENSED",
   "dependencies": {
     "connect-nedb-session": "^0.0.3",
-    "discord.js": "^11.5.1",
+    "discord.js": "^11.6.4",
     "express": "^4.17.1",
     "express-handlebars": "^3.1.0",
     "express-session": "^1.17.0",

@@ -58,9 +58,8 @@ module.exports.viewguild = (req, res) => {
   db.findOne({ id: req.params.guildid }, (err, guildDB) => {
     if (err) logger.error(err);
 
-    guild.fetchMembers(req.session.discord_user.username)
-      .then(guild => {
-        const member = guild.members.get(req.session.discord_user.id);
+    guild.fetchMember(req.session.discord_user.id, false)
+      .then(member => {
         const epgpManager = member.roles.find(r => r.name === guildDB.epgpManager)
         req.session.epgpManager = Boolean(epgpManager);
         logger.info('EP/GP User: ' + member.user.username + ' has EPGP Manager role: ' + guildDB.epgpManager + '=' + req.session.epgpManager);
