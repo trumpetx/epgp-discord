@@ -49,7 +49,7 @@ const handleMessage = (guild, bot, message, args, command) => {
   if (!(memberAdmin && command === 'config') && bot.disabled) {
     // Silently return unless an admin is processing configuration
     return;
-  } else if (guild.epgpManager && command === 'manager') {
+  } else if (startsWithIgnoreCase(command, 'manager')) {
     if (!memberAdmin) {
       reply.push('Only server administrators can update the bot configuration');
     } else if (args.length === 0) {
