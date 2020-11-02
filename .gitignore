@@ -4,5 +4,6 @@ node_modules/
 .idea
 yarn-error.log
 *.code-workspace
+.vscode
 package-lock.json
 yarn.lock
