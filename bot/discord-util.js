@@ -1,4 +1,4 @@
-const { ADMININSTRATOR } = require('../discord');
+const { ADMINISTRATOR } = require('../discord');
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -38,4 +38,4 @@ module.exports.mapToNick = member => {
 };
 
 module.exports.isOwner = message => message.channel.guild.ownerID === message.author.id;
-module.exports.isAdmin = message => module.exports.isOwner(message) || message.member.hasPermission(ADMININSTRATOR);
+module.exports.isAdmin = message => module.exports.isOwner(message) || message.member.hasPermission(ADMINISTRATOR);
