@@ -202,7 +202,7 @@ module.exports.viewloot = (req, res) => {
   db.findOne({ id: guildid }, (err, guild) => {
     if (err) throw new Error(err);
     const alias = ((guild.aliases || {})[member] || {}).alias;
-    const wowheadDomain = guild.wowheadDomain || 'classic';
+    const wowheadDomain = guild.wowheadDomain || 'tbc';
     const gpData = [];
     const epData = [];
     const prData = [];
@@ -368,7 +368,7 @@ module.exports.config = (req, res) => {
   }
   if (req.body.webhook) {
     const webhook = req.body.webhook.trim();
-    if (webhook === '' || webhook.startsWith('https://discordapp.com/api/webhooks')) {
+    if (webhook === '' || webhook.startsWith('https://discordapp.com/api/webhooks') || webhook.startsWith('https://discord.com/api/webhooks')) {
       setGuildValues.webhook = webhook;
     } else {
       logger.error('Bad webhook URL: ' + webhook);
@@ -376,7 +376,7 @@ module.exports.config = (req, res) => {
       return;
     }
   }
-  if (['classic', 'www'].indexOf(req.body.wowheadDomain) != -1) {
+  if (['classic', 'www', 'tbc'].indexOf(req.body.wowheadDomain) != -1) {
     setGuildValues.wowheadDomain = req.body.wowheadDomain;
   }
   if (req.body.latestLootCount) {

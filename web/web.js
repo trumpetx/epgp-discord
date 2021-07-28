@@ -36,7 +36,7 @@ app.engine(
         item = _.toInteger(item);
         return (
           `<a href="https://${wowheadDomain}.wowhead.com/item=${item}" target="_new" data-wowhead="item=${item}"` +
-          (wowheadDomain === 'www' ? '' : `&domain=classic'">${item}</a>`)
+          (wowheadDomain === 'www' ? '' : `&domain=${wowheadDomain}'">${item}</a>`)
         );
       },
       eq: (o1, o2) => o1 == o2,
