@@ -36,10 +36,10 @@ module.exports.botServer = token => {
   client.on('info', infoHandler);
   client.on('debug', msg => {});
   client.once('ready', () => {
-    logger.info(`Bot has started, with ${client.users.size} users, in ${client.channels.size} channels of ${client.guilds.size} guilds:`);
-    client.user.setActivity(`on ${client.guilds.size} servers`).catch(logger.error);
+    logger.info(`Bot has started, with ${client.users.cache.size} users, in ${client.channels.cache.size} channels of ${client.guilds.cache.size} guilds:`);
+    client.user.setActivity(`on ${client.guilds.cache.size} servers`).catch(logger.error);
     const guilds = [];
-    client.guilds.forEach(guild => {
+    client.guilds.cache.forEach(guild => {
       guilds.push(guild.name);
       upsert(guild.id);
     });
