@@ -46,7 +46,7 @@ function itemParse(item) {
 }
 
 module.exports.viewguild = (req, res) => {
-  const guild = client.guilds.get(req.params.guildid);
+  const guild = client.guilds.cache.get(req.params.guildid);
 
   if (!guild) {
     logger.info('EP/GP BOT not installed in guild: ' + req.params.guildid);
@@ -58,7 +58,7 @@ module.exports.viewguild = (req, res) => {
   db.findOne({ id: req.params.guildid }, (err, guildDB) => {
     if (err) logger.error(err);
 
-    guild.fetchMember(req.session.discord_user.id, false)
+    guild.members.fetch(req.session.discord_user.id, false)
       .then(member => {
         const epgpManager = member.roles.find(r => r.name === guildDB.epgpManager)
         req.session.epgpManager = Boolean(epgpManager);
@@ -203,17 +203,22 @@ module.exports.viewloot = (req, res) => {
     if (err) throw new Error(err);
     const alias = ((guild.aliases || {})[member] || {}).alias;
     const wowheadDomain = guild.wowheadDomain || 'tbc';
+    const days = req.query.days || guild.lootDays || 180;
     const gpData = [];
     const epData = [];
     const prData = [];
     let prs = [];
     let maxEpgp = 100;
     let noLootList = false;
+    const dateFrom = days == -1 ? 0 : Date.now() - 1000 * 60 * 60 * 24 * days;
     let loot = [
       ...new Set(
         (guild.backups || [])
+          .filter(b => {
+            b.dt = _.toInteger(b.timestamp) * 1000;
+            return b.dt > dateFrom;
+	  })
           .map(b => {
-            const dt = _.toInteger(b.timestamp) * 1000;
             b.roster
               .filter(arr => arr[0] === member)
               .map(arr => {
@@ -228,9 +233,9 @@ module.exports.viewloot = (req, res) => {
                 maxEpgp = Math.max(maxEpgp, arr[1], arr[2]);
                 const pr = _.toInteger((arr[1] / arr[2]) * 100) / 100;
                 prs.push(pr);
-                epData.push({ t: dt, y: arr[1] });
-                gpData.push({ t: dt, y: arr[2] });
-                prData.push({ t: dt, y: pr });
+                epData.push({ t: b.dt, y: arr[1] });
+                gpData.push({ t: b.dt, y: arr[2] });
+                prData.push({ t: b.dt, y: pr });
               });
             return b.loot || [];
           })
@@ -357,6 +362,16 @@ module.exports.config = (req, res) => {
   }
   if (req.body.disableBot) {
     setValues.disabled = req.body.disableBot === 'true';
+  }
+  if (req.body.lootDays) {
+    const lootDays = _.toInteger(req.body.lootDays);
+    if (lootDays > 0) {
+      setGuildValues.lootDays = lootDays;
+    } else if (lootDays == 0) {
+      setGuildValues.lootDays = undefined;
+    } else {
+      setGuildValues.lootDays = -1;
+    }
   }
   if (req.body.discordUploadPermission) {
     const permissions = Array.isArray(req.body.discordUploadPermission) ? req.body.discordUploadPermission : [req.body.discordUploadPermission];

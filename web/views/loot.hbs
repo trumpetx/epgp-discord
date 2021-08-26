@@ -19,6 +19,7 @@
   <!-- CEPGP does not have loot -->
 {{else}}
   {{#if loot}}
+    <div style="text-align: right;"><a href="?days=30">Last Month</a> | <a href="?days=365">Last Year</a> | <a href="?days=-1">All Time</a> | <a href="?days={{guild.lootDays}}">Default</a></div>
     <table id="loot" class="table table-sm table-bordered table-striped table-dark">
       <thead>
         <tr><td>Item</td><td>GP</td><td>Looted</td></tr>

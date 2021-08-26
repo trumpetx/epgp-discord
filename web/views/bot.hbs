@@ -85,6 +85,11 @@
               <input type="number" class="form-control" id="latestLootCount" name="latestLootCount" aria-describedby="latestLootCountHelp" value="{{guild.latestLootCount}}" placeholder="10">
               <small id="latestLootCountHelp" class="form-text text-muted">Set the number of &quot;latest loot&quot; items shown; &lt;=0 to disable</small>
             </div>
+            <div class="form-group">
+              <label for="latestLoot">Loot History Days</label>
+              <input type="number" class="form-control" id="lootDays" name="lootDays" aria-describedby="lootDaysHelp" value="{{guild.lootDays}}" placeholder="180">
+              <small id="lootDaysHelp" class="form-text text-muted">Limit the graph and loot history on the individual member pages to the most recent X days.  0 to reset to default.  -1 to set to &quotforever&quot;</small>
+            </div>
             <button type="submit" class="btn btn-primary">Update Configuration</button>
           </form>
         </div>
