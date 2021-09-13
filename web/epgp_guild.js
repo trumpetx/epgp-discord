@@ -21,7 +21,7 @@ module.exports.addguild = (req, res) => {
   if (!isAdminOfGuild(guild)) throw GENERIC_ERROR;
 
   // Set default EPGP Manager role
-  guild.epgpManager = "EPGP Manager";
+  guild.epgpManager = 'EPGP Manager';
 
   db.insert(guild, (err, doc) => {
     if (err) throw new Error(err);
@@ -58,20 +58,21 @@ module.exports.viewguild = (req, res) => {
   db.findOne({ id: req.params.guildid }, (err, guildDB) => {
     if (err) logger.error(err);
 
-    guild.members.fetch(req.session.discord_user.id, false)
+    guild.members
+      .fetch(req.session.discord_user.id, false)
       .then(member => {
-        const epgpManager = member.roles.find(r => r.name === guildDB.epgpManager)
+        const epgpManager = member.roles.find(r => r.name === guildDB.epgpManager);
         req.session.epgpManager = Boolean(epgpManager);
         logger.info('EP/GP User: ' + member.user.username + ' has EPGP Manager role: ' + guildDB.epgpManager + '=' + req.session.epgpManager);
         viewGuildCallback(req, res);
       })
       .catch(err => {
-        logger.error('EP/GP cannot fetch member: ' + req.session.discord_user.id)
+        logger.error('EP/GP cannot fetch member: ' + req.session.discord_user.id);
         req.session.epgpManager = false;
         viewGuildCallback(req, res);
       });
   });
-}
+};
 
 function viewGuildCallback(req, res) {
   const guildid = req.params.guildid;
@@ -119,7 +120,7 @@ function viewGuildCallback(req, res) {
       })
     );
   });
-};
+}
 
 function guildAliasMap(guild, member) {
   if (isCEPGP(member)) {
@@ -217,7 +218,7 @@ module.exports.viewloot = (req, res) => {
           .filter(b => {
             b.dt = _.toInteger(b.timestamp) * 1000;
             return b.dt > dateFrom;
-	  })
+          })
           .map(b => {
             b.roster
               .filter(arr => arr[0] === member)
