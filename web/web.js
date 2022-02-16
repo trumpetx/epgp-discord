@@ -19,7 +19,11 @@ const moment = require('moment');
 const _ = require('lodash');
 const discord = require('../discord');
 
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: false
+  })
+);
 app.use(methodOverride('_method'));
 app.use(express.json());
 app.use(express.urlencoded());
