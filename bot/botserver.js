@@ -58,7 +58,7 @@ module.exports.botServer = token => {
     client.user.setActivity(`on ${client.guilds.size} servers`);
   });
 
-  client.on('message', require('./message'));
+  client.on('messageCreate', require('./message'));
   client.login(token).catch(e => logger.error(e.toString()));
 };
 
