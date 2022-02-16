@@ -7,7 +7,7 @@ const morgan = require('morgan');
 const path = require('path');
 const session = require('express-session');
 const NedbStore = require('connect-nedb-session')(session);
-const uuidv4 = require('uuid/v4');
+const uuid = require('uuid');
 const { props } = require('../props');
 const app = (module.exports = express());
 const logout = require('./logout');
@@ -25,7 +25,7 @@ app.use(express.json());
 app.use(express.urlencoded());
 app.engine(
   'hbs',
-  hbs({
+  hbs.engine({
     extname: 'hbs',
     defaultLayout: 'main',
     layoutsDir: path.join(__dirname, 'layouts'),
@@ -78,7 +78,7 @@ app.use(
   session({
     secret: props.sessionSecret,
     resave: true,
-    genid: uuidv4,
+    genid: uuid.v4,
     saveUninitialized: true,
     cookie: {
       path: '/',
@@ -95,6 +95,7 @@ app.use(sessionPopulateFilter);
 
 // Static routes
 app.get('/', (_req, res) => res.render('index'));
+app.get('/setup', (_req, res) => res.render('setup'));
 app.get('/about', (_req, res) => res.render('about'));
 
 app.get('/logout', logout);
@@ -103,6 +104,7 @@ app.get('/bot/:guildid', viewbot);
 app.post('/config/:guildid', config);
 app.post('/epgp/:guildid', addguild);
 app.get('/epgp/:guildid', viewguild);
+//app.get('/epgp/:guildid/:raidteam', viewguild);
 app.get('/epgp/:guildid/export', viewexport);
 app.get('/epgp/:guildid/loot/:member', viewloot);
 app.delete('/epgp/:guildid', deleteguild);

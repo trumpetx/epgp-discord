@@ -47,6 +47,7 @@ function itemParse(item) {
 
 module.exports.viewguild = (req, res) => {
   const guild = client.guilds.cache.get(req.params.guildid);
+  const raidteam = req.params.raidteam;
 
   if (!guild) {
     logger.info('EP/GP BOT not installed in guild: ' + req.params.guildid);
@@ -61,13 +62,14 @@ module.exports.viewguild = (req, res) => {
     guild.members
       .fetch(req.session.discord_user.id, false)
       .then(member => {
-        const epgpManager = member.roles.find(r => r.name === guildDB.epgpManager);
+        const epgpManager = member.roles.cache.find(r => r.name === guildDB.epgpManager);
         req.session.epgpManager = Boolean(epgpManager);
         logger.info('EP/GP User: ' + member.user.username + ' has EPGP Manager role: ' + guildDB.epgpManager + '=' + req.session.epgpManager);
         viewGuildCallback(req, res);
       })
       .catch(err => {
         logger.error('EP/GP cannot fetch member: ' + req.session.discord_user.id);
+        logger.error(err);
         req.session.epgpManager = false;
         viewGuildCallback(req, res);
       });

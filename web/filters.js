@@ -2,11 +2,11 @@ const { serverStatus } = require('../bot/botserver');
 const { db, bots } = require('../db');
 const { discordUrl, refreshOauth } = require('../discord');
 const { logger } = require('../logger');
-const uuidv4 = require('uuid/v4');
+const uuid = require('uuid');
 const _ = require('lodash');
 
 function setState(req) {
-  req.session.state = req.session.state || uuidv4();
+  req.session.state = req.session.state || uuid.v4();
   return req.session.state;
 }
 
