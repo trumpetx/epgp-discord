@@ -99,10 +99,10 @@ module.exports.discordUrl = state =>
   )}&response_type=code&scope=${encodeURIComponent(SCOPE)}`;
 
 // https://discordapp.com/developers/docs/topics/permissions
-module.exports.ADMIN_PERMISSION = 0x00000008;
+module.exports.ADMIN_PERMISSION = BigInt(0x00000008);
 module.exports.ADMINISTRATOR = this.ADMIN_PERMISSION;
-module.exports.MANAGE_GUILD = 0x00000020;
-module.exports.MANAGE_CHANNELS = 0x00000010;
-module.exports.MANAGE_ROLES = 0x10000000;
-module.exports.MANAGE_WEBHOOKS = 0x20000000;
+module.exports.MANAGE_GUILD = BigInt(0x00000020);
+module.exports.MANAGE_CHANNELS = BigInt(0x00000010);
+module.exports.MANAGE_ROLES = BigInt(0x10000000);
+module.exports.MANAGE_WEBHOOKS = BigInt(0x20000000);
 module.exports.botUrl = `${DISCORD_BASE}/oauth2/authorize?client_id=${props.clientId}&scope=bot&permissions=${props.botPermissions}`;
