@@ -38,4 +38,4 @@ module.exports.mapToNick = member => {
 };
 
 module.exports.isOwner = message => message.channel.guild.ownerID === message.author.id;
-module.exports.isAdmin = message => module.exports.isOwner(message) || message.member.permissions.has(ADMINISTRATOR);
+module.exports.isAdmin = message => module.exports.isOwner(message) || message.member.permissions.has(BigInt(ADMINISTRATOR));
