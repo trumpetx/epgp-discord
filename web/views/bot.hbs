@@ -45,9 +45,10 @@
             <div class="form-group">
               <label for="wowheadDomain">Wowhead Item Links</label>
               <select class="form-control" name="wowheadDomain" id="wowheadDomain" aria-describedby="wowheadDomainHelp">
-                <option {{#if (eqDefault guild.wowheadDomain 'tbc' 'tbc')}}SELECTED{{/if}} value="tbc">Classic TBC</option>
-                <option {{#if (eqDefault guild.wowheadDomain 'classic' 'tbc')}}SELECTED{{/if}} value="classic">Classic Vanilla</option>
-                <option {{#if (eqDefault guild.wowheadDomain 'www' 'tbc')}}SELECTED{{/if}} value="www">Retail</option>
+                <option {{#if (eqDefault guild.wowheadDomain 'wotlk' 'wotlk')}}SELECTED{{/if}} value="wotlk">Classic Wrath</option>
+                <option {{#if (eqDefault guild.wowheadDomain 'tbc' 'wotlk')}}SELECTED{{/if}} value="tbc">Classic TBC</option>
+                <option {{#if (eqDefault guild.wowheadDomain 'classic' 'wotlk')}}SELECTED{{/if}} value="classic">Classic Vanilla</option>
+                <option {{#if (eqDefault guild.wowheadDomain 'www' 'wotlk')}}SELECTED{{/if}} value="www">Retail</option>
               </select>
               <small id="wowheadDomainHelp" class="form-text text-muted">Select which Wowhead domain should be used for item links</small>
             </div>

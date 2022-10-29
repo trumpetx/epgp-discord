@@ -205,7 +205,7 @@ module.exports.viewloot = (req, res) => {
   db.findOne({ id: guildid }, (err, guild) => {
     if (err) throw new Error(err);
     const alias = ((guild.aliases || {})[member] || {}).alias;
-    const wowheadDomain = guild.wowheadDomain || 'tbc';
+    const wowheadDomain = guild.wowheadDomain || 'wotlk';
     const days = req.query.days || guild.lootDays || 180;
     const gpData = [];
     const epData = [];
@@ -394,7 +394,7 @@ module.exports.config = (req, res) => {
       return;
     }
   }
-  if (['classic', 'www', 'tbc'].indexOf(req.body.wowheadDomain) != -1) {
+  if (['classic', 'www', 'tbc', 'wotlk'].indexOf(req.body.wowheadDomain) != -1) {
     setGuildValues.wowheadDomain = req.body.wowheadDomain;
   }
   if (req.body.latestLootCount) {
