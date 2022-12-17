@@ -57,7 +57,7 @@ app.engine(
       hasPerm: (mask, perm) => {
         perm = discord[perm];
         mask = mask || 0x00;
-        return (mask & perm) === perm;
+        return (mask & perm) == perm;
       },
       neq: (o1, o2) => o1 != o2,
       eqDefault: (o1, o2, def) => (o1 || def) == o2,

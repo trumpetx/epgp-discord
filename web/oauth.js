@@ -16,6 +16,10 @@ module.exports = (req, res) => {
     }
   */
   oauth(req.query.code, body => {
+    if(!body || !body.refresh_token) {
+      console.error('Error on oauth return body', body);
+      return;
+    }
     req.session.refresh_token = body.refresh_token;
     req.session.access_token = body.access_token;
     req.session.expires_at = new Date(_.toInteger(body.expires_in) * 1000 + new Date().getTime());
