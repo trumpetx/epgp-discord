@@ -91,13 +91,13 @@ function viewGuildCallback(req, res) {
     const canCustomize = current && current.roster && current.roster.length > 0 && !isCEPGP(current.roster[0]);
     if (current) {
       customJson = _.keyBy(
-        current.roster.map(entry => guildAliasMap(guild, entry)),
+        current.roster.map(entry => guildAliasMap(guild, entry)).filter(e => e !== null),
         'name'
       );
       _.forEach(customJson, (v, _k) => {
         v.name = undefined;
       });
-      current.roster = current.roster.map(entry => guildMemberMap(guild, entry)).sort((a, b) => (a.displayName || '').localeCompare(b.displayName));
+      current.roster = current.roster.map(entry => guildMemberMap(guild, entry)).filter(e => e !== null).sort((a, b) => (a.displayName || '').localeCompare(b.displayName));
       const latestLootCount = Math.max(0, _.isUndefined(guild.latestLootCount) ? 10 : guild.latestLootCount);
       if (current.loot && current.loot.length > 0 && latestLootCount > 0) {
         latestLoot = current.loot
@@ -125,31 +125,40 @@ function viewGuildCallback(req, res) {
 }
 
 function guildAliasMap(guild, member) {
-  if (isCEPGP(member)) {
+  const noteFilter = guild.noteFilter && new RegExp(guild.noteFilter);
+  const isCepgp = isCEPGP(member);
+  const note = isCepgp ? member[2] : displayNote(guild, member[0]);
+  if(noteFilter && noteFilter.exec(note)) {
+    logger.debug('Filtering out ' + member[0]);
+    return null;
+  }
+  if (isCepgp) {
     return {
       name: member[0],
       displayName: member[0],
       class: member[1],
-      note: member[2]
+      note: note
     };
   }
   return {
     name: member[0],
     displayName: displayName(guild, member[0]),
     class: displayClass(guild, member[0]),
-    note: displayNote(guild, member[0])
+    note: note
   };
 }
 
 function guildMemberMap(guild, member) {
+  const mappedAlias = guildAliasMap(guild, member);
+  if (mappedAlias == null) return null;
   if (isCEPGP(member)) {
-    return _.merge(guildAliasMap(guild, member), {
+    return _.merge(mappedAlias, {
       ep: member[3],
       gp: member[4],
       pr: member[5]
     });
   }
-  return _.merge(guildAliasMap(guild, member), {
+  return _.merge(mappedAlias, {
     ep: member[1],
     gp: member[2],
     pr: member[2] === 0 ? NaN : _.round(member[1] / member[2], 2)
@@ -397,6 +406,7 @@ module.exports.config = (req, res) => {
   if (['classic', 'www', 'tbc', 'wotlk'].indexOf(req.body.wowheadDomain) != -1) {
     setGuildValues.wowheadDomain = req.body.wowheadDomain;
   }
+  setGuildValues.noteFilter = req.body.noteFilter;
   if (req.body.latestLootCount) {
     setGuildValues.latestLootCount = _.toInteger(req.body.latestLootCount);
   }
@@ -516,7 +526,7 @@ function validateImportSchema(json) {
 
 function validateClass(clazz) {
   clazz = (clazz || '').trim();
-  return clazz.match(/^(Druid|Hunter|Mage|Paladin|Priest|Rogue|Shaman|Warlock|Warrior)$/) ? clazz : undefined;
+  return clazz.match(/^(Druid|Hunter|Mage|Paladin|Priest|Rogue|Shaman|Warlock|Warrior|Death Knight)$/) ? clazz : undefined;
 }
 
 module.exports.addAlias = (req, res) => {

@@ -82,6 +82,11 @@
               </small>
             </div>
             <div class="form-group">
+              <label for="noteFilter">Note Filter (advanced)</label>
+              <input type="text" class="form-control" id="noteFilter" name="noteFilter" aria-describedby="noteFilterHelp" value="{{guild.noteFilter}}">
+              <small id="noteFilterHelp" class="form-text text-muted">A regular expression to filter out players by their 'note' (epgp-classic) or 'rank' (cepgp)</small>
+            </div>
+            <div class="form-group">
               <label for="latestLoot">&quot;Latest Loot&quot; count</label>
               <input type="number" class="form-control" id="latestLootCount" name="latestLootCount" aria-describedby="latestLootCountHelp" value="{{guild.latestLootCount}}" placeholder="10">
               <small id="latestLootCountHelp" class="form-text text-muted">Set the number of &quot;latest loot&quot; items shown; &lt;=0 to disable</small>
