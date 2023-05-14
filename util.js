@@ -22,6 +22,9 @@ module.exports.isCLM = memberObject => {
 };
 
 module.exports.getCurrentRoster = current => {
+  if(!current) {
+    return undefined;
+  }
   // EPGP or CEPGP
   if (current.roster) {
     return current.roster;
@@ -31,6 +34,9 @@ module.exports.getCurrentRoster = current => {
 };
 
 module.exports.getCurrentLoot = current => {
+  if(!current) {
+    return undefined;
+  }
   // EPGP
   if (_.isArray(current.loot)) {
     return current.loot;
@@ -54,6 +60,9 @@ module.exports.getCurrentLoot = current => {
 };
 
 module.exports.getConfigInfo = current => {
+  if(!current) {
+    return undefined;
+  }
   // EPGP
   if (current.roster && current.guild) {
     return {
