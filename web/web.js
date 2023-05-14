@@ -36,7 +36,7 @@ app.use(helmet.referrerPolicy());
 app.use(helmet.xssFilter());
 app.use(methodOverride('_method'));
 app.use(express.json());
-app.use(express.urlencoded());
+app.use(express.urlencoded({ extended: true }));
 app.engine(
   'hbs',
   hbs.engine({
@@ -45,6 +45,9 @@ app.engine(
     layoutsDir: path.join(__dirname, 'layouts'),
     partialsDir: path.join(__dirname, 'partials'),
     helpers: {
+      playerCount: backup => {
+        return backup.roster ? backup.roster.length : backup.standings.roster[0].standings.player.length;
+      },
       wowhead: (item, wowheadDomain) => {
         wowheadDomain = wowheadDomain || 'classic';
         item = _.toInteger(item);

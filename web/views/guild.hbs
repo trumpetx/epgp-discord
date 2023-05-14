@@ -2,18 +2,18 @@
   <div class="row">
     <div class="col-sm">
       <h4>{{guild.name}}</h4>
-      {{#if current}}
-        {{#if current.guild}}
+      {{#if currentRoster}}
+        {{#if config.guild}}
           <table class="table table-sm table-bordered table-striped table-dark" style="width: 300px;">
-            <tr><td>Realm:</td><td>{{current.realm}}</td></tr>
-            {{#if (neq guild.name current.guild)}}
-              <tr><td>Guild:</td><td>{{current.guild}}</td></tr>
+            <tr><td>Realm:</td><td>{{config.realm}}</td></tr>
+            {{#if (neq guild.name config.guild)}}
+              <tr><td>Guild:</td><td>{{config.guild}}</td></tr>
             {{/if}}
-            <!--tr><td>Region:</td><td>{{current.region}}</td></tr-->
-            <tr><td>Base GP:</td><td>{{current.base_gp}}</td></tr>
-            <tr><td>Decay:</td><td>{{current.decay_p}}%</td></tr>
-            <tr><td>Min EP:</td><td>{{current.min_ep}}</td></tr>
-            <tr><td>Extras:</td><td>{{current.extras_p}}</td></tr>
+            <!--tr><td>Region:</td><td>{{config.region}}</td></tr-->
+            {{#if config.base_gp}}<tr><td>Base GP:</td><td>{{config.base_gp}}</td></tr>{{/if}}
+            {{#if config.decay_p}}<tr><td>Decay:</td><td>{{config.decay_p}}%</td></tr>{{/if}}
+            {{#if config.min_ep}}<tr><td>Min EP:</td><td>{{config.min_ep}}</td></tr>{{/if}}
+            {{#if config.extras_p}}<tr><td>Extras:</td><td>{{config.extras_p}}</td></tr>{{/if}}
           </table>
         {{else}}
           <br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
@@ -59,12 +59,12 @@
   </div>
 </div>
 <br/>
-{{#if current}}
+{{#if currentRoster}}
 <table id="currentRoster" class="table table-bordered table-striped table-dark">
   <thead>
     <tr><td>Member</td><td>Class</td><td>EP</td><td>GP</td><td>PR</td></tr>
   </thead>
-  {{#each current.roster}}
+  {{#each currentRoster}}
     <tr>
       <td>
         <a href="/epgp/{{../guild.id}}/loot/{{name}}" class="{{class}}">{{displayName}}</a>
@@ -84,7 +84,7 @@
     <tr><th>Members</th><th>Date</th><td>Actions</td></tr>
   </thead>
   {{#reverse guild.backups}}<tr>
-    <td class="narrow">{{roster.length}}</td>
+    <td class="narrow">{{playerCount this}}</td>
     <td>{{dtFormat timestampDate 'YYYY-MM-DD HH:mm'}}</td>
     <td class="narrow">
       <a class="btn btn-primary btn-sm" href="/epgp/{{../guild.id}}?index={{index}}" role="button">View</a>
@@ -111,7 +111,7 @@
           <div class="form-group simpleModeGroup">
             <label for="characterName">Member</label>
             <select class="form-control" id="characterName" name="characterName">
-              {{#each current.roster}}
+              {{#each currentRoster}}
                 <option value="{{name}}">{{displayName}}</option>
               {{/each}}
             </select>

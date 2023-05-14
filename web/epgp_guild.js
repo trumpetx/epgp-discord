@@ -8,7 +8,7 @@ const { chunk } = require('../bot/discord-util');
 const { props } = require('../props');
 const moment = require('moment');
 const _ = require('lodash');
-const { isCEPGP, rosterToTabList } = require('../util');
+const { isCEPGP, rosterToTabList, isCLM, getCurrentRoster, getCurrentLoot, getConfigInfo, mapToArray } = require('../util');
 const GENERIC_ERROR = new Error('Invalid Guild ID');
 const getGuild = req => req.session.guilds.find(g => g.id === req.params.guildid);
 const isUserOfGuild = (guild, admin) => guild && (admin !== true || guild.admin === admin);
@@ -88,24 +88,35 @@ function viewGuildCallback(req, res) {
     const current = guild.backups && guild.backups[index];
     let customJson = {};
     let latestLoot;
-    const canCustomize = current && current.roster && current.roster.length > 0 && !isCEPGP(current.roster[0]);
+    let currentRoster = getCurrentRoster(current);
+    const configInfo = getConfigInfo(current);
+    const currentLoot = getCurrentLoot(current);
+    const canCustomize = currentRoster && currentRoster.length > 0 && !(isCEPGP(currentRoster[0]) || isCLM(currentRoster[0]));
     if (current) {
       customJson = _.keyBy(
-        current.roster.map(entry => guildAliasMap(guild, entry)).filter(e => e !== null),
+        currentRoster.map(entry => guildAliasMap(guild, entry)).filter(e => e !== null),
         'name'
       );
       _.forEach(customJson, (v, _k) => {
         v.name = undefined;
       });
-      current.roster = current.roster.map(entry => guildMemberMap(guild, entry)).filter(e => e !== null).sort((a, b) => (a.displayName || '').localeCompare(b.displayName));
+      currentRoster = currentRoster
+        .map(entry => guildMemberMap(guild, entry))
+        .filter(e => e !== null)
+        .sort((a, b) => (a.displayName || '').localeCompare(b.displayName));
       const latestLootCount = Math.max(0, _.isUndefined(guild.latestLootCount) ? 10 : guild.latestLootCount);
-      if (current.loot && current.loot.length > 0 && latestLootCount > 0) {
-        latestLoot = current.loot
+      if (currentLoot && currentLoot.length > 0 && latestLootCount > 0) {
+        latestLoot = currentLoot
           .sort((o1, o2) => o2[0] - o1[0])
           .filter(o => o[1] !== 'Guild Bank')
           .slice(0, latestLootCount)
           .map(itemRow => {
-            return { name: itemRow[1], displayName: displayName(guild, itemRow[1]), class: displayClass(guild, itemRow[1]), item: itemParse(itemRow[2]) };
+            return {
+              name: itemRow[1],
+              displayName: displayName(guild, itemRow[1]),
+              class: itemRow[4] || displayClass(guild, itemRow[1]),
+              item: itemParse(itemRow[2])
+            };
           });
       }
     }
@@ -117,7 +128,8 @@ function viewGuildCallback(req, res) {
         isAdmin: isAdmin(req),
         guild,
         index,
-        current,
+        currentRoster,
+        configInfo,
         customJson: JSON.stringify(customJson, null, 2)
       })
     );
@@ -127,10 +139,19 @@ function viewGuildCallback(req, res) {
 function guildAliasMap(guild, member) {
   const noteFilter = guild.noteFilter && new RegExp(guild.noteFilter);
   const isCepgp = isCEPGP(member);
+  const isClm = !isCepgp && isCLM(member);
   const note = isCepgp ? member[2] : displayNote(guild, member[0]);
-  if(noteFilter && noteFilter.exec(note)) {
+  if (noteFilter && noteFilter.exec(note)) {
     logger.debug('Filtering out ' + member[0]);
     return null;
+  }
+  if (isClm) {
+    return {
+      name: member.name,
+      displayName: member.name,
+      class: member['class'],
+      note: note
+    };
   }
   if (isCepgp) {
     return {
@@ -156,6 +177,13 @@ function guildMemberMap(guild, member) {
       ep: member[3],
       gp: member[4],
       pr: member[5]
+    });
+  }
+  if (isCLM(member)) {
+    return _.merge(mappedAlias, {
+      ep: member.points,
+      gp: member.spent,
+      pr: member.spent === 0 ? NaN : _.round(member.points / member.spent, 2)
     });
   }
   return _.merge(mappedAlias, {
@@ -227,19 +255,26 @@ module.exports.viewloot = (req, res) => {
       ...new Set(
         (guild.backups || [])
           .filter(b => {
-            b.dt = _.toInteger(b.timestamp) * 1000;
+            if (b.timestamp) {
+              b.dt = _.toInteger(b.timestamp) * 1000;
+            } else if (b.timestampDate) {
+              b.dt = moment(b.timestampDate).valueOf();
+            } else if (b.uploadedDate) {
+              b.dt = moment(b.uploadedDate).valueOf();
+            }
             return b.dt > dateFrom;
           })
           .map(b => {
-            b.roster
-              .filter(arr => arr[0] === member)
-              .map(arr => {
-                if (isCEPGP(arr)) {
-                  noLootList = true;
-                  return [arr[0], arr[3], arr[4]];
-                } else {
-                  return arr;
+            getCurrentRoster(b)
+              .filter(arr => {
+                if (isCLM(arr)) {
+                  return arr.name === member;
                 }
+                return arr[0] === member;
+              })
+              .map(arr => {
+                if (isCEPGP(arr)) noLootList = true;
+                return mapToArray(arr);
               })
               .forEach(arr => {
                 maxEpgp = Math.max(maxEpgp, arr[1], arr[2]);
@@ -249,7 +284,7 @@ module.exports.viewloot = (req, res) => {
                 gpData.push({ t: b.dt, y: arr[2] });
                 prData.push({ t: b.dt, y: pr });
               });
-            return b.loot || [];
+            return getCurrentLoot(b);
           })
           .reduce((arr, v) => arr.concat(v), [])
           .filter(arr => member === arr[1] || (alias !== undefined && arr[1].startsWith(alias)))
@@ -438,7 +473,28 @@ module.exports.deleteguild = (req, res) => {
 };
 
 function validateSchema(json) {
-  return _.isArray(json.roster) && ((json.guild && json.region && _.isArray(json.loot)) || (json.roster.length > 0 && isCEPGP(json.roster[0])));
+  if (_.isArray(json.roster) && json.roster.length > 0 && isCEPGP(json.roster[0])) {
+    logger.debug('Valid CEPGP Roster uploaded');
+    return true;
+  }
+  if (_.isArray(json.roster) && json.guild && json.region && _.isArray(json.loot)) {
+    logger.debug('Valid EPGP Classic Roster uploaded');
+    return true;
+  }
+  if (
+    json.standings &&
+    _.isArray(json.standings.roster) &&
+    json.standings.roster.length > 0 &&
+    json.standings.roster[0].standings &&
+    _.isArray(json.standings.roster[0].standings.player) &&
+    json.standings.roster[0].standings.player.length > 0 &&
+    isCLM(json.standings.roster[0].standings.player[0])
+  ) {
+    logger.debug('Valid CLM Roster uploaded');
+    return true;
+  }
+  logger.warn('Invalid Roster uploaded');
+  return false;
 }
 
 function canUpload(req, callback) {
@@ -470,52 +526,58 @@ module.exports.uploadbackup = (req, res) => {
     if (!validateSchema(uploadBackup)) {
       res.redirect('/epgp/' + guildid + '?message=' + encodeURIComponent('Invalid Backup JSON'));
     } else {
-      uploadBackup.uploadedDate = new Date();
-      // Unix timestamp to .js timestamp
-      uploadBackup.timestampDate = new Date(uploadBackup.timestamp * 1000);
-      db.update({ id: guildid }, { $push: { backups: uploadBackup } }, {}, err => {
-        if (err) throw new Error(err);
-        logger.debug('Backup uploaded');
-        db.findOne({ id: guildid }, (err, guild) => {
-          if (err) {
-            logger.error(err);
-            return;
-          }
-          if (guild && guild.webhook && guild.webhook.startsWith('http')) {
-            const formattedList = rosterToTabList(uploadBackup.roster, guild.discordColumnSpacing);
-            const chunkFooter = formattedList.chunkFooter + `[See full details](<${props.hostname}${props.extPortString}/epgp/${guildid}/>)`;
-            const chunkHeader = moment(uploadBackup.timestampDate).format('YYYY-MM-DD HH:mm') + formattedList.chunkHeader;
-            const msg = formattedList.roster;
-            chunk(
-              msg,
-              1900,
-              content => {
-                request(
-                  {
-                    method: 'POST',
-                    url: guild.webhook,
-                    headers: {
-                      'Content-Type': 'application/json',
-                      Accept: 'application/json'
+      logger.debug('Backup uploaded, saving to db');
+      try {
+        uploadBackup.uploadedDate = moment(new Date()).format('YYYY-MM-DD HH:mm');
+        // Unix timestamp to .js timestamp
+        uploadBackup.timestampDate = uploadBackup.timestamp && new Date(uploadBackup.timestamp * 1000);
+        db.update({ id: guildid }, { $push: { backups: uploadBackup } }, {}, err => {
+          if (err) throw new Error(err);
+          logger.debug('Backup uploaded');
+          db.findOne({ id: guildid }, (err, guild) => {
+            if (err) {
+              logger.error(err);
+              return;
+            }
+            if (guild && guild.webhook && guild.webhook.startsWith('http')) {
+              const parsedRoster = getCurrentRoster(uploadBackup);
+              const formattedList = rosterToTabList(parsedRoster, guild.discordColumnSpacing);
+              const chunkFooter = formattedList.chunkFooter + `[See full details](<${props.hostname}${props.extPortString}/epgp/${guildid}/>)`;
+              const chunkHeader = moment(uploadBackup.timestampDate || uploadBackup.uploadedDate).format('YYYY-MM-DD HH:mm') + formattedList.chunkHeader;
+              const msg = formattedList.roster;
+              chunk(
+                msg,
+                1900,
+                content => {
+                  request(
+                    {
+                      method: 'POST',
+                      url: guild.webhook,
+                      headers: {
+                        'Content-Type': 'application/json',
+                        Accept: 'application/json'
+                      },
+                      body: JSON.stringify({ content })
                     },
-                    body: JSON.stringify({ content })
-                  },
-                  (error, response, body) => {
-                    if (error) {
-                      logger.error(error);
-                    } else if (response.statusCode !== 200 && response.statusCode !== 204) {
-                      logger.error('Bad Status on webhook response: ' + response.statusCode + '\n\n' + body);
+                    (error, response, body) => {
+                      if (error) {
+                        logger.error(error);
+                      } else if (response.statusCode !== 200 && response.statusCode !== 204) {
+                        logger.error('Bad Status on webhook response: ' + response.statusCode + '\n\n' + body);
+                      }
                     }
-                  }
-                );
-              },
-              chunkHeader,
-              chunkFooter
-            );
-          }
-          res.redirect('/epgp/' + guildid);
+                  );
+                },
+                chunkHeader,
+                chunkFooter
+              );
+            }
+            res.redirect('/epgp/' + guildid);
+          });
         });
-      });
+      } catch (e) {
+        logger.error(e);
+      }
     }
   });
 };
