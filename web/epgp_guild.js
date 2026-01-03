@@ -1,10 +1,8 @@
-const { db, bots } = require('../db');
+const { db } = require('../db');
 const discord = require('../discord');
-const botUrl = discord.botUrl;
 const request = require('request');
 const { logger } = require('../logger');
-const { client } = require('../bot/botserver');
-const { chunk } = require('../bot/discord-util');
+const { chunk } = require('../util');
 const { props } = require('../props');
 const moment = require('moment');
 const _ = require('lodash');
@@ -46,34 +44,9 @@ function itemParse(item) {
 }
 
 module.exports.viewguild = (req, res) => {
-  const guild = client.guilds.cache.get(req.params.guildid);
   const raidteam = req.params.raidteam;
-
-  if (!guild) {
-    logger.info('EP/GP BOT not installed in guild: ' + req.params.guildid);
-    req.session.epgpManager = false;
-    viewGuildCallback(req, res);
-    return;
-  }
-
-  db.findOne({ id: req.params.guildid }, (err, guildDB) => {
-    if (err) logger.error(err);
-
-    guild.members
-      .fetch(req.session.discord_user.id, false)
-      .then(member => {
-        const epgpManager = member.roles.cache.find(r => r.name === guildDB.epgpManager);
-        req.session.epgpManager = Boolean(epgpManager);
-        logger.info('EP/GP User: ' + member.user.username + ' has EPGP Manager role: ' + guildDB.epgpManager + '=' + req.session.epgpManager);
-        viewGuildCallback(req, res);
-      })
-      .catch(err => {
-        logger.error('EP/GP cannot fetch member: ' + req.session.discord_user.id);
-        logger.error(err);
-        req.session.epgpManager = false;
-        viewGuildCallback(req, res);
-      });
-  });
+  req.session.epgpManager = false;
+  viewGuildCallback(req, res);
 };
 
 function viewGuildCallback(req, res) {
@@ -383,18 +356,14 @@ module.exports.viewexport = (req, res) => {
   });
 };
 
-module.exports.viewbot = (req, res) => {
+module.exports.viewconfig = (req, res) => {
   const guildid = req.params.guildid;
   if (!isUser(req)) throw GENERIC_ERROR;
-  const model = { isAdmin: isAdmin(req), botUrl };
+  const model = { isAdmin: isAdmin(req) };
   db.findOne({ id: guildid }, (err, guild) => {
     if (err) logger.error(err);
     model.guild = guild;
-    bots.findOne({ id: guildid }, (err, bot) => {
-      if (err) logger.error(err);
-      model.bot = bot;
-      res.render('bot', model);
-    });
+    res.render('config', model);
   });
 };
 
@@ -404,12 +373,6 @@ module.exports.config = (req, res) => {
   const isGeneralForm = req.body.isGeneral === 'true';
   const setValues = {};
   const setGuildValues = {};
-  if (req.body.disableBot) {
-    setValues.disabled = req.body.disableBot === 'true';
-  }
-  if (req.body.disableBot) {
-    setValues.disabled = req.body.disableBot === 'true';
-  }
   if (req.body.lootDays) {
     const lootDays = _.toInteger(req.body.lootDays);
     if (lootDays > 0) {
@@ -434,7 +397,7 @@ module.exports.config = (req, res) => {
       setGuildValues.webhook = webhook;
     } else {
       logger.error('Bad webhook URL: ' + webhook);
-      res.redirect('/bot/' + guildid);
+      res.redirect('/config/' + guildid);
       return;
     }
   }
@@ -453,13 +416,10 @@ module.exports.config = (req, res) => {
     setGuildValues.enableRefundFilter = req.body.enableRefundFilter === 'true';
     setGuildValues.enableDuplicateFilter = req.body.enableDuplicateFilter === 'true';
   }
-  logger.debug('Updating configuration: ' + JSON.stringify(_.merge(setValues, setGuildValues)));
-  bots.update({ id: guildid }, { $set: setValues }, {}, (err, _updatedCount) => {
-    if (err) logger.error(err);
-    db.update({ id: guildid }, { $set: setGuildValues }, {}, (err2, _updatedCount2) => {
-      if (err2) logger.error(err2);
-      res.redirect('/bot/' + guildid);
-    });
+  logger.debug('Updating configuration: ' + JSON.stringify(setGuildValues));
+  db.update({ id: guildid }, { $set: setGuildValues }, {}, (err2, _updatedCount2) => {
+    if (err2) logger.error(err2);
+    res.redirect('/config/' + guildid);
   });
 };
 

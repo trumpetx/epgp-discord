@@ -10,7 +10,7 @@ module.exports.startsWithIgnoreCase = (str, startsWith) => {
 };
 
 //
-// Items shared between bot & web
+// Utility functions
 //
 
 module.exports.isCEPGP = memberArray => {
@@ -128,4 +128,20 @@ module.exports.rosterToTabList = (roster, tabWidth = 2) => {
     chunkHeader,
     chunkFooter: '```'
   };
+};
+
+module.exports.chunk = async (msg, chunkSize, sendFn, chuckHeader = '', chunkFooter = '') => {
+  chunkSize = chunkSize - chuckHeader.length - chunkFooter.length;
+  let msgLength = 0;
+  let idx = 0;
+  for (let i = 0; i < msg.length; i++) {
+    if (msgLength + msg[i].length > chunkSize) {
+      sendFn(chuckHeader + msg.slice(idx, i).join('\n') + chunkFooter);
+      idx = i;
+      msgLength = 0;
+      await module.exports.sleep(1000);
+    }
+    msgLength += msg[i].length;
+  }
+  sendFn(chuckHeader + msg.slice(idx, msg.length).join('\n') + chunkFooter);
 };

@@ -3,9 +3,6 @@ const fs = require('fs');
 // Save this JSON structure to props.json wherever the 'current' launch directory is (aka, where db.json is saved)
 const props = {
   clientId: undefined,
-  token: undefined,
-  prefix: '!epgp',
-  botPermissions: 93184,
   port: 8080
 };
 

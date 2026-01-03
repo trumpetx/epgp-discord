@@ -24,8 +24,7 @@
                 placeholder="https://discordapp.com/api/webhooks/00000{channel-id-numbers}00000/{long-token-here}">
               <small id="webhookHelp" class="form-text text-muted">
                 Get this URL by right-clicking the channel -> Edit Channel -> Webhooks -> Create Webhook<br/>
-                Adding a Webhook URL will post EPGP values to the Webhook channel every time you upload a new backup.<br/>
-                The Discord Bot is <b>not</b> required when using the webhook.
+                Adding a Webhook URL will post EPGP values to the Webhook channel every time you upload a new backup.
               </small>
             </div>
             <div class="form-group">
@@ -74,10 +73,10 @@
               </small>
             </div>
             <div class="form-group">
-              <label for="discordColumnSpacing">Discord Webhook/Bot Column Spacing</label>
+              <label for="discordColumnSpacing">Discord Webhook Column Spacing</label>
               <input type="number" class="form-control" id="discordColumnSpacing" name="discordColumnSpacing" aria-describedby="discordColumnSpacingHelp" value="{{guild.discordColumnSpacing}}" placeholder="2" min="2" max="10">
               <small id="discordColumnSpacingHelp" class="form-text text-muted">
-                The number of spaces between columns in the Discord spam message (Webhook or bot !epgp list command).  Min 2 Max 10
+                The number of spaces between columns in the Discord webhook message.  Min 2 Max 10
               </small>
             </div>
             <div class="form-group">
@@ -107,29 +106,6 @@
         <br/>
         <div>
           <div class="form-group">
-            {{#if serverStatus.online}}
-              {{#if bot}}
-                <form method="POST" action="/config/{{guild.id}}">
-                    {{#if bot.disabled}}
-                      <input type="hidden" name="disableBot" value="false" />
-                      <button type="submit" class="btn btn-success">Enable Bot</button>
-                    {{else}}
-                      <input type="hidden" name="disableBot" value="true" />
-                      <button type="submit" class="btn btn-warning">Disable Bot</button>
-                    {{/if}}
-                </form>
-              {{else}}
-                <div><a class="btn btn-primary" target="_new" href="{{botUrl}}" role="button">Add Discord Bot</a></div>
-              {{/if}}
-            {{else}}
-              <div class="alert alert-danger" role="alert">
-                The Discord bot is currently offline and requires a rewrite due to Discord API changes<br/>
-                <br/>
-                The Webhook integration is still active
-              </div>
-            {{/if}}
-          </div>
-          <div class="form-group">
             <button class="btn btn-warning" type="button" data-toggle="collapse" data-target="#realDeleteGuild" aria-expanded="false" aria-controls="realDeleteGuild">
               <i class="fa fa-trash-o" aria-hidden="true"></i>&nbsp;&nbsp;Delete Guild
             </button>
@@ -148,60 +124,3 @@
     </div>
     <br/>
   {{/if}}
-
-<br/>
-{{!-- {{#if bot}}
-  {{#if bot.disabled}}
-    <div class="alert alert-warning" role="alert">
-      The Discord bot is currently disabled for your server
-    </div>
-  {{else}}
-    <div class="alert alert-success" role="alert">
-      The Discord bot is set up and active for your server
-    </div>
-  {{/if}}
-{{else}}
-  <div class="alert alert-danger" role="alert">
-    The Discord bot has not been added to your server
-  </div>
-  {{#unless isAdmin}}
-    <div>The Discord Owner or member with the ADMINISTRATOR permission needs to come to this page to add the bot to the Discord server</div>
-  {{/unless}}
-{{/if}} --}}
-<br/>
-<h3>Discord Bot Commands</h3>
-<div class="card">
-  <div class="card-body">
-  <h4 class="card-title">!epgp</h4>
-  <h4 class="card-title">!epgp list <span style="font-size: 12pt;">(admin only: same message to current channel)</span></h4>
-    <pre>
-Name                     EP          GP          PR
-Roman                    5291        1000        5.29
-Broandite                5208        1000        5.21
-Torched                  4979        1000        4.98
-Biffins                  4881        1000        4.88
-Reliante                 4109        1000        4.11
-Britiania                6670        1660        4.02
-Brodoodle                6662        1678        3.97
-Marker                   6670        1682        3.97
-Doolie                   6670        1833        3.64
-Bouncer                  6662        1836        3.63
-Fishies                  5640        1552        3.63
-Raxil                    6662        1935        3.44
-Barta                    6670        1975        3.38
-Towelet                  4705        1408        3.34
-    </pre>
-  </div>
-</div>
-<br/>
-<div class="card">
-  <div class="card-body">
-  <h4 class="card-title">!epgp Torched</h4>
-    <pre>
-Torched-Server
-EP: 6160
-GP: 2695
-PR: 2.2857142857142856
-    </pre>
-  </div>
-</div>

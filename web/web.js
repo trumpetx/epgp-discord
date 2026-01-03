@@ -12,7 +12,7 @@ const { props } = require('../props');
 const app = (module.exports = express());
 const logout = require('./logout');
 const epgp = require('./epgp');
-const { addguild, viewguild, deleteguild, uploadbackup, viewbot, config, viewloot, addAlias, viewexport } = require('./epgp_guild');
+const { addguild, viewguild, deleteguild, uploadbackup, viewconfig, config, viewloot, addAlias, viewexport } = require('./epgp_guild');
 const { loginFilter, sessionPopulateFilter, refreshTokenFilter } = require('./filters');
 const oauth = require('./oauth');
 const moment = require('moment');
@@ -107,7 +107,7 @@ app.use(
 );
 
 app.use(refreshTokenFilter);
-['/epgp*', '/bot*'].forEach(path => app.use(path, loginFilter));
+['/epgp*', '/config*'].forEach(path => app.use(path, loginFilter));
 app.use(sessionPopulateFilter);
 
 // Static routes
@@ -117,7 +117,7 @@ app.get('/about', (_req, res) => res.render('about'));
 
 app.get('/logout', logout);
 app.get('/epgp', epgp);
-app.get('/bot/:guildid', viewbot);
+app.get('/config/:guildid', viewconfig);
 app.post('/config/:guildid', config);
 app.post('/epgp/:guildid', addguild);
 app.get('/epgp/:guildid', viewguild);

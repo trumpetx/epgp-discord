@@ -105,4 +105,3 @@ module.exports.MANAGE_GUILD = 0x00000020;
 module.exports.MANAGE_CHANNELS = 0x00000010;
 module.exports.MANAGE_ROLES = 0x10000000;
 module.exports.MANAGE_WEBHOOKS = 0x20000000;
-module.exports.botUrl = `${DISCORD_BASE}/oauth2/authorize?client_id=${props.clientId}&scope=bot&permissions=${props.botPermissions}`;

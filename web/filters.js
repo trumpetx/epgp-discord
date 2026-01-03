@@ -1,5 +1,4 @@
-const { serverStatus } = require('../bot/botserver');
-const { db, bots } = require('../db');
+const { db } = require('../db');
 const { discordUrl, refreshOauth } = require('../discord');
 const { logger } = require('../logger');
 const uuid = require('uuid');
@@ -26,15 +25,10 @@ module.exports.sessionPopulateFilter = (req, res, next) => {
     res.locals.session = {};
     res.locals.discordUrl = discordUrl(req.session.state);
   }
-  res.locals.serverStatus = serverStatus();
   db.count({}, (err, guildCount) => {
     if (err) logger.error(err);
     res.locals.guildCount = guildCount;
-    bots.count({}, (err, botCount) => {
-      if (err) logger.error(err);
-      res.locals.botCount = botCount;
-      next();
-    });
+    next();
   });
 };
 
