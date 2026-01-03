@@ -5,19 +5,19 @@
   "license": "UNLICENSED",
   "dependencies": {
     "connect-nedb-session": "^0.0.3",
-    "express": "^4.18.2",
-    "express-handlebars": "^6.0.2",
-    "express-session": "^1.17.2",
+    "express": "^4.22.1",
+    "express-handlebars": "^6.0.7",
+    "express-session": "^1.18.2",
     "hbs": "^4.2.0",
     "helmet": "^5.1.1",
     "lodash": "^4.17.21",
     "method-override": "^3.0.0",
-    "moment": "^2.29.4",
-    "morgan": "^1.10.0",
+    "moment": "^2.30.1",
+    "morgan": "^1.10.1",
     "nedb": "^1.8.0",
     "request": "^2.88.2",
     "uuid": "^8.3.2",
-    "winston": "^3.8.2",
+    "winston": "^3.19.0",
     "winston-daily-rotate-file": "^4.7.1"
   },
   "scripts": {
@@ -26,10 +26,10 @@
     "pretty": "eslint --fix *.js"
   },
   "devDependencies": {
-    "eslint": "^5.11.0",
-    "eslint-plugin-prettier": "^3.0.0",
-    "nodemon": "^1.18.9",
-    "prettier": "^1.15.3"
+    "eslint": "^5.16.0",
+    "eslint-plugin-prettier": "^3.4.1",
+    "nodemon": "^1.19.4",
+    "prettier": "^1.19.1"
   },
   "eslintConfig": {
     "env": {
