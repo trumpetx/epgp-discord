@@ -66,12 +66,12 @@ function viewGuildCallback(req, res) {
     const currentLoot = getCurrentLoot(current);
     const canCustomize = currentRoster && currentRoster.length > 0 && !(isCEPGP(currentRoster[0]) || isCLM(currentRoster[0]));
     if (current) {
-      customJson = _.keyBy(
-        currentRoster.map(entry => guildAliasMap(guild, entry)).filter(e => e !== null),
-        'name'
-      );
-      _.forEach(customJson, (v, _k) => {
-        v.name = undefined;
+      const aliasMapped = currentRoster.map(entry => guildAliasMap(guild, entry)).filter(e => e !== null);
+      customJson = _.keyBy(aliasMapped, 'name');
+      aliasMapped.forEach(v => {
+        if (customJson[v.name]) {
+          delete customJson[v.name].name;
+        }
       });
       currentRoster = currentRoster
         .map(entry => guildMemberMap(guild, entry))
@@ -109,8 +109,17 @@ function viewGuildCallback(req, res) {
   });
 }
 
+const noteFilterCache = new Map();
+
 function guildAliasMap(guild, member) {
-  const noteFilter = guild.noteFilter && new RegExp(guild.noteFilter);
+  let noteFilter = null;
+  if (guild.noteFilter) {
+    noteFilter = noteFilterCache.get(guild.noteFilter);
+    if (!noteFilter) {
+      noteFilter = new RegExp(guild.noteFilter);
+      noteFilterCache.set(guild.noteFilter, noteFilter);
+    }
+  }
   const isCepgp = isCEPGP(member);
   const isClm = !isCepgp && isCLM(member);
   const note = isCepgp ? member[2] : displayNote(guild, member[0]);
@@ -167,7 +176,7 @@ function guildMemberMap(guild, member) {
 }
 
 function getAlias(guild, member) {
-  return (guild.aliases && guild.aliases[member] && guild.aliases[member]) || {};
+  return (guild.aliases && guild.aliases[member]) || {};
 }
 
 function displayName(guild, member) {
@@ -282,14 +291,15 @@ module.exports.viewloot = (req, res) => {
     if (guild.enableRefundFilter) {
       let last = undefined;
       const trueNegative = [];
-      const refunded = loot.reverse().filter(item => {
+      const lootReversed = loot.slice().reverse();
+      const refunded = lootReversed.filter(item => {
         if (item.gp < 0) {
           logger.debug('Marking item ' + item.item + '/' + item.gp + ' as a refunded item. ');
           return true;
         }
         return false;
       });
-      loot = loot.filter(item => {
+      loot = lootReversed.filter(item => {
         if (refunded.length > 0) {
           const next = refunded[0];
           if (next.gp === -item.gp && next.item === item.item) {

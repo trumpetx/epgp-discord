@@ -80,7 +80,9 @@ module.exports.getConfigInfo = current => {
 };
 
 function calcPr(entry) {
-  return (_.toNumber(entry[1]) / _.toNumber(entry[2])).toFixed(2);
+  const ep = _.toNumber(entry[1]);
+  const gp = _.toNumber(entry[2]);
+  return gp === 0 ? 0 : ep / gp;
 }
 
 module.exports.mapToArray = arr => {
@@ -99,7 +101,11 @@ module.exports.rosterToTabList = (roster, tabWidth = 2) => {
   let maxGP = 5;
   roster = roster
     .map(arr => module.exports.mapToArray(arr))
-    .sort((e1, e2) => calcPr(e2) - calcPr(e1))
+    .sort((e1, e2) => {
+      const pr1 = calcPr(e1);
+      const pr2 = calcPr(e2);
+      return pr2 - pr1;
+    })
     .map(entry => {
       let name = entry[0];
       const idx = name.lastIndexOf('-');
@@ -117,7 +123,7 @@ module.exports.rosterToTabList = (roster, tabWidth = 2) => {
       const gp = ('' + entry[2]).padEnd(maxGP + tabWidth, ' ');
       const pr = calcPr(entry);
       if (pr > 0) {
-        return `${name}${ep}${gp}${pr}`;
+        return `${name}${ep}${gp}${pr.toFixed(2)}`;
       }
       return undefined;
     })

@@ -13,7 +13,8 @@ function renderGuilds(req, res) {
   const myGuildIds = guilds.map(g => g.id);
   db.find({ id: { $in: myGuildIds } }, (err, guildsWithEpgp) => {
     if (err) throw new Error(err);
-    const nonGuilds = guilds.filter(el => !guildsWithEpgp.some(g => g.id === el.id));
+    const guildsWithEpgpIds = new Set(guildsWithEpgp.map(g => g.id));
+    const nonGuilds = guilds.filter(el => !guildsWithEpgpIds.has(el.id));
     const nonGuildsWithAdmin = nonGuilds.filter(el => el.admin);
     const nonGuildsWithoutAdminCount = nonGuilds.length - nonGuildsWithAdmin.length;
     res.render('epgp', { nonGuildsWithAdmin, guildsWithEpgp, nonGuildsWithoutAdminCount });
@@ -34,7 +35,7 @@ module.exports = (req, res) => {
   } else {
     const expiresAt = req.session && req.session.expires_at;
     if (!expiresAt || req.session.expires_at < new Date()) {
-      logout(res);
+      logout(req, res);
     } else {
       guilds(req.session.access_token, body => {
         if (!body) {
